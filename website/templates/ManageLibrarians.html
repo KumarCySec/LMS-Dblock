@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Librarians</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Add viewport meta tag for responsiveness -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+    {% extends "MAHome.html" %}
+
+    {% block libcontent %}
+    <div class="container my-4" id="manageLibrariansContent">
+        <h2 class="mb-4">Manage Librarians</h2>
+
+        <!-- Tab Navigation for Mobile View -->
+        <ul class="nav nav-tabs nav-justified flex-column flex-md-row" id="librarianTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="verified-tab" data-toggle="tab" href="#verified" role="tab"
+                    aria-controls="verified" aria-selected="true">Verified Librarians</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="unverified-tab" data-toggle="tab" href="#unverified" role="tab"
+                    aria-controls="unverified" aria-selected="false">Unverified Librarians</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="rejected-tab" data-toggle="tab" href="#rejected" role="tab"
+                    aria-controls="rejected" aria-selected="false">Rejected Librarians</a>
+            </li>
+        </ul>
+
+
+
+        <div class="tab-content" id="librarianTabContent">
+            <!-- Verified Librarians Tab -->
+            <div class="tab-pane fade show active" id="verified" role="tabpanel" aria-labelledby="verified-tab">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h3>Verified Librarians</h3>
+                        <!-- Card View for Mobile -->
+                        <div class="d-block d-md-none">
+                            {% for librarian in verified_librarians %}
+                            <div class="card librarian-card" data-toggle="modal"
+                                data-target="#librarianDetailsModal-{{ librarian.id }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ librarian.name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Phone Number:</strong> {{ librarian.phone_number }}<br>
+                                        <strong>Email:</strong> {{ librarian.email }}<br>
+                                        <strong>Role:</strong> {{ librarian.role }}
+                                    </p>
+                                    <form method="POST" action="{{ url_for('MasterAdmin.manage_librarians') }}"
+                                        style="display:inline;">
+                                        {{ form.csrf_token }}
+                                        <input type="hidden" name="librarian_id" value="{{ librarian.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                            value="deverify">Deverify</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <!-- Table View for Desktop -->
+                        <div class="d-none d-md-block">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>S.no.</th>
+                                        <th>Name</th>
+                                        <th>Phone Number</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for librarian in verified_librarians %}
+                                    <tr class="librarian-row" data-toggle="modal"
+                                        data-target="#librarianDetailsModal-{{ librarian.id }}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ librarian.name }}</td>
+                                        <td>{{ librarian.phone_number }}</td>
+                                        <td>{{ librarian.email }}</td>
+                                        <td>{{ librarian.role }}</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('MasterAdmin.manage_librarians') }}"
+                                                style="display:inline;">
+                                                {{ form.csrf_token }}
+                                                <input type="hidden" name="librarian_id" value="{{ librarian.id }}">
+                                                <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                                    value="deverify"
+                                                    aria-label="Deverify {{ librarian.name }}">Deverify</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unverified Librarians Tab -->
+            <div class="tab-pane fade" id="unverified" role="tabpanel" aria-labelledby="unverified-tab">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h3>Unverified Librarians</h3>
+
+                        <!-- Card View for Mobile -->
+                        <div class="d-block d-md-none">
+                            {% for librarian in unverified_librarians %}
+                            <div class="card librarian-card" data-toggle="modal"
+                                data-target="#librarianDetailsModal-{{ librarian.id }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ librarian.name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Phone Number:</strong> {{ librarian.phone_number }}<br>
+                                        <strong>Email:</strong> {{ librarian.email }}
+                                    </p>
+                                    <form method="POST" action="{{ url_for('MasterAdmin.manage_librarians') }}">
+                                        {{ form.csrf_token }}
+                                        <input type="hidden" name="librarian_id" value="{{ librarian.id }}">
+                                        <button type="submit" class="btn btn-success btn-sm" name="action"
+                                            value="verify">Verify</button>
+                                        <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                            value="reject">Reject</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Table View for Desktop -->
+                        <div class="d-none d-md-block">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>S.no.</th>
+                                        <th>Name</th>
+                                        <th>Phone Number</th>
+                                        <th>Email</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for librarian in unverified_librarians %}
+                                    <tr class="librarian-row" data-toggle="modal"
+                                        data-target="#librarianDetailsModal-{{ librarian.id }}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ librarian.name }}</td>
+                                        <td>{{ librarian.phone_number }}</td>
+                                        <td>{{ librarian.email }}</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('MasterAdmin.manage_librarians') }}">
+                                                {{ form.csrf_token }}
+                                                <input type="hidden" name="librarian_id" value="{{ librarian.id }}">
+                                                <button type="submit" class="btn btn-success btn-sm" name="action"
+                                                    value="verify"
+                                                    aria-label="Verify {{ librarian.name }}">Verify</button>
+                                                <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                                    value="reject"
+                                                    aria-label="Reject {{ librarian.name }}">Reject</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rejected Librarians Tab -->
+            <div class="tab-pane fade" id="rejected" role="tabpanel" aria-labelledby="rejected-tab">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h3>Rejected Librarians</h3>
+
+                        <!-- Delete All Rejected Button -->
+                        <form method="POST" action="{{ url_for('MasterAdmin.manage_librarians') }}" class="mb-3">
+                            {{ form.csrf_token }}
+                            <button type="submit" class="btn btn-danger" name="action"
+                                value="delete_all_rejected">Delete All Rejected</button>
+                        </form>
+
+                        <!-- Card View for Mobile -->
+                        <div class="d-block d-md-none">
+                            {% for librarian in rejected_librarians %}
+                            <div class="card librarian-card" data-toggle="modal"
+                                data-target="#librarianDetailsModal-{{ librarian.id }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ librarian.name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Phone Number:</strong> {{ librarian.phone_number }}<br>
+                                        <strong>Email:</strong> {{ librarian.email }}
+                                    </p>
+                                    <form method="POST" action="{{ url_for('MasterAdmin.manage_librarians') }}">
+                                        {{ form.csrf_token }}
+                                        <input type="hidden" name="librarian_id" value="{{ librarian.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                            value="delete">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Table View for Desktop -->
+                        <div class="d-none d-md-block">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>S.no.</th>
+                                        <th>Name</th>
+                                        <th>Phone Number</th>
+                                        <th>Email</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for librarian in rejected_librarians %}
+                                    <tr class="librarian-row" data-toggle="modal"
+                                        data-target="#librarianDetailsModal-{{ librarian.id }}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ librarian.name }}</td>
+                                        <td>{{ librarian.phone_number }}</td>
+                                        <td>{{ librarian.email }}</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('MasterAdmin.manage_librarians') }}">
+                                                {{ form.csrf_token }}
+                                                <input type="hidden" name="librarian_id" value="{{ librarian.id }}">
+                                                <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                                    value="delete"
+                                                    aria-label="Delete {{ librarian.name }}">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+       
+    </div>
+
+    <style>
+        @media (max-width: 576px) {
+            .nav-tabs .nav-item {
+                width: 100%;
+            }
+
+            .nav-tabs .nav-link {
+                text-align: center;
+            }
+        }
+    </style>
+    {% endblock %}
+
+    {% block Booksscripts %}
+    <!-- Ensure jQuery is included before Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            // Fix for unverified tab not switching
+            $('#unverified-tab').on('click', function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+                $('#verified').removeClass('show active');
+                $('#rejected').removeClass('show active');
+                $('#unverified').addClass('show active');
+            });
+
+            // Fix for verified tab switching back
+            $('#verified-tab').on('click', function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+                $('#unverified').removeClass('show active');
+                $('#rejected').removeClass('show active');
+                $('#verified').addClass('show active');
+            });
+
+            // Fix for rejected tab switching back
+            $('#rejected-tab').on('click', function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+                $('#unverified').removeClass('show active');
+                $('#verified').removeClass('show active');
+                $('#rejected').addClass('show active');
+            });
+
+
+        });
+    </script>
+    {% endblock %}
+</body>
+
+</html>

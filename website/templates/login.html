@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+/>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <title>D-Block LMS</title>
+    <link rel="icon" href="/static/img/LMS.png" />
+    <script>
+      function enforceUppercase(event) {
+        let inputValue = event.target.value;
+        if (/^\d/.test(inputValue)) {
+          // Check if starts with a digit
+          event.target.value = inputValue.toUpperCase();
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="forms-container">
+        <div class="signin-signup">
+          <form action="#" method="POST" class="sign-in-form">
+            <h2 class="title">Welcome to Our D-Block Library</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %} {%
+            if messages %} {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {{ message }}
+              <span class="close-btn">&times;</span>
+            </div>
+            {% endfor %} {% endif %} {% endwith %}
+            <div class="input-field">
+              <i class="fas fa-user"></i>
+              <input
+                type="text"
+                name="identifier"
+                oninput="enforceUppercase(event)"
+                placeholder="Roll Number or Email"
+                required
+              />
+            </div>
+            <div class="input-field">
+              <i class="fas fa-lock"></i>
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                required
+              />
+            </div>
+            <button type="submit" name="action" value="Login" class="btnlogin">
+              Login
+            </button>
+          </form>
+          <form action="#" method="POST" class="sign-up-form">
+            <h1 class="title" style="font-size:larger;">Join the D-Block Library Community</h1>
+            {% with messages = get_flashed_messages(with_categories=true) %} {%
+            if messages %} {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {{ message }}
+              <span class="close-btn">&times;</span>
+            </div>
+            {% endfor %} {% endif %} {% endwith %}
+            <div class="radio-buttons">
+              <label>
+                <input type="radio" name="role" value="Student" checked />
+                <span style="font-family: Arial, Helvetica, sans-serif;">Student</span>
+              </label>
+              <label>
+                <input type="radio" name="role" value="Librarian" />
+                <span>Librarian</span>
+              </label>
+            </div>
+            <div class="input-field">
+              <i class="fas fa-user"></i>
+              <input type="text" name="name" placeholder="Name" required />
+            </div>
+            <div id="roll-number-section" class="input-field">
+              <i class="fas fa-id-card"></i>
+              <input
+                type="text"
+                name="roll_number"
+                oninput="enforceUppercase(event)"
+                placeholder="Roll Number"
+                required
+              />
+            </div>
+            <div class="input-field">
+              <i class="fas fa-envelope"></i>
+              <input type="email" name="email" placeholder="Email" required />
+            </div>
+            <div class="input-field">
+              <i class="fas fa-lock"></i>
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                required
+              />
+            </div>
+            <div class="input-field">
+              <i class="fas fa-lock"></i>
+              <input
+                type="password"
+                name="confirm_password"
+                placeholder="Confirm Password"
+                required
+              />
+            </div>
+
+            <button type="submit" name="action" class="btnsignup" value="Sign up">
+              Sign up
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="panels-container">
+        <div class="panel left-panel">
+          <div class="content">
+            <h3>New to our library?</h3>
+            <h4>Don't have an account?</h4>
+            <p>
+              Sign up now and unlock access to a world of books and resources!
+            </p>
+            <button class="btn transparent" id="sign-up-btn">Sign up</button>
+          </div>
+          <img src="/static/img/library1.png" class="image" alt="" />
+        </div>
+        <div class="panel right-panel">
+          <div class="content">
+            <h3>Been here before?</h3>
+            <p>
+              Let's pick up where you left off. Sign in to continue your library
+              exploration.
+            </p>
+            <button class="btn transparent" id="sign-in-btn">Sign in</button>
+          </div>
+          <img src="/static/img/library.png" class="image" alt="" />
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+  </body>
+</html>

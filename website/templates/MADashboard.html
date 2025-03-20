@@ -1,0 +1,38 @@
+{% extends "MAHome.html" %}
+
+
+{% block Main %}
+<main class="content px-3 py-2" id="dashboardcontent">
+    <div class="container-fluid">
+        <div class="mb-3">
+            <h4>Master Admin Dashboard</h4>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-6">
+                <div class="card flex-fill border-0 illustration">
+                    <div class="card-body p-0 d-flex flex-fill">
+                        <div class="row g-0 w-100">
+                            <div class="col-6">
+                                <div class="p-3 m-1">
+                                    <h4>Welcome Back, Mr. {{ current_user.name }}</h4>
+                                    <p class="mb-0">Dashboard</p>
+                                </div>
+                            </div>
+                            <div class="col-6 align-self-end text-end">
+                                <img {% block Image %}src="{{ url_for('static', filename='img/librarian.jpeg') }}" alt="Librarian Image"{% endblock %} class="img-fluid illustration-img" alt="Illustration">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- DASHBOARD CONTENT -->
+            
+        </div>
+    </div>  
+</main>
+{% endblock %}
+
+
+{% block dashboard %}
+
+    {% endblock %}

@@ -1,0 +1,121 @@
+{% extends "StudentHome.html" %}
+
+{% block Main %}
+<main class="content px-3 py-2" id="dashboardcontent">
+    <div class="container-fluid">
+        <div class="mb-3">
+            <h4>Student Dashboard</h4>
+        </div>
+        <div class="row">
+            <!-- Welcome Card (Full Width on Mobile) -->
+            <div class="col-12">
+                <div class="card flex-fill border-0 illustration shadow-sm">
+                    <div class="card-body p-0 d-flex flex-fill">
+                        <div class="row g-0 w-100">
+                            <div class="col-6">
+                                <div class="p-3 m-1">
+                                    <h4>Welcome Back, Miss. {{ current_user.name }}</h4>
+                                    <p class="mb-0">Dashboard</p>
+                                </div>
+                            </div>
+                            <div class="col-6 align-self-end text-end">
+                                <img {% block Image %}src="{{ url_for('static', filename='img/student.jpeg') }}" alt="Student Image"{% endblock %} class="img-fluid illustration-img rounded-circle" style="max-width: 100px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <!-- Next Due Date Card -->
+            <div class="col-12 col-md-6 mb-3">
+                <div class="card border-0 card-next-due shadow-sm">
+                    <div class="card-body py-4">
+                        <h5 class="card-title text-primary">Next Due Date</h5>
+                        {% if nearest_due_book %}
+                        <p class="mb-2"> Book Title: {{ nearest_due_book.book.title }}</p>
+                        <p class="text-muted">Due: {{ nearest_due_book.due_date.strftime('%Y-%m-%d') }}</p>
+                        {% else %}
+                        <p class="text-muted">No books currently borrowed.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checked Out Books Card -->
+            <div class="col-12 col-md-6 mb-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body py-4">
+                        <h5 class="card-title">Checked Out Books</h5>
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <th scope="row" class="text-primary">Total Checked Out Books</th>
+                                    <td><span class="display-4">{{ total_checked_out_books }}</span></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="text-primary">Days Until Next Due</th>
+                                    {% if days_until_next_due is not none %}
+                                    <td><span class="display-4">{{ days_until_next_due }}</span></td>
+                                    {% else %}
+                                    <td><span class="display-4">N/A</span></td>
+                                    {% endif %}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Arrivals Card -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body py-4">
+                        <h5 class="card-title">New Arrivals</h5>
+                        <div class="row">
+                            {% for book in new_arrivals %}
+                            <div class="col-6 col-md-3 mb-3">
+                                <div class="card">
+                                    <!-- <img src="{{ book.image }}" class="card-img-top" alt="{{ book.title }}"> -->
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ book.title }}</h6>
+                                        <p class="card-text">{{ book.author }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Books Card -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body py-4">
+                        <h5 class="card-title">Popular Books</h5>
+                        <div class="row">
+                            {% for book in popular_books %}
+                            <div class="col-6 col-md-3 mb-3">
+                                <div class="card">
+                                    <img src="{{ book.image }}" class="card-img-top" alt="{{ book.title }}">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ book.title }}</h6>
+                                        <p class="card-text">{{ book.author }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

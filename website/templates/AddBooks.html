@@ -1,0 +1,127 @@
+{% extends "LibrarianHome.html" %}
+
+{% block libcontent %}
+<div class="container" id="addBooksContent">
+    <h2>Add New Book</h2>
+    <form id="addBookForm" method="POST" class="row g-3">
+        <div class="col-md-6">
+            <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        <div class="col-md-6">
+            <label for="author" class="form-label">Author <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="author" name="author" required>
+        </div>
+        <div class="col-md-6">
+            <label for="isbn" class="form-label">ISBN</label>
+            <input type="text" class="form-control" id="isbn" name="isbn">
+        </div>
+        <div class="col-md-6">
+            <label for="published_date" class="form-label">Published Date</label>
+            <input type="date" class="form-control" id="published_date" name="published_date">
+        </div>
+        <div class="col-md-6">
+            <label for="quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="quantity" name="quantity" required>
+        </div>
+        <div class="col-md-6">
+            <label for="language" class="form-label">Language</label>
+            <input type="text" class="form-control" id="language" name="language">
+        </div>
+        <div class="col-md-6">
+            <label for="donor_name" class="form-label">Donor <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <select class="form-select" id="donor_name" name="donor_name" required>
+                    <option value="">--Select Donor--</option>
+                    <option value="new_donor">Click to add New Donor</option>
+                    {% for donor in donors %}
+                    <option value="{{ donor.name }}">{{ donor.name }} - {{ donor.department }} - {{ donor.year_of_graduation }}</option>
+                    {% endfor %}
+                </select>
+                <a href="{{ url_for('lib.AddDonor') }}" ><button type="button" class="btn btn-outline-primary" id="addDonorDetailsBtn">Add Full Donor Details</button> </a>
+            </div>
+        </div>
+        <div class="col-md-6" id="new_donor_details" style="display: none;">
+            <label for="new_donor_name" class="form-label">New Donor name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="new_donor_name" name="new_donor_name">
+        </div>
+        <div class="col-md-6" id="new_donor_department" style="display: none;">
+            <label for="donor_department" class="form-label">Donor department <span class="text-danger">*</span></label>
+            <select class="form-select" id="donor_department" name="donor_department">
+                <option value="">Select department</option>
+                <option value="CSE">Computer Science and Engineering</option>
+                <option value="ECE">Electronics and Communication Engineering</option>
+                <option value="EEE">Electrical and Electronics Engineering</option>
+                <option value="IT">Information Technology</option>
+                <option value="CIVIL">Civil Engineering</option>
+                <option value="MECH">Mechanical Engineering</option>
+                <option value="AUTO">Automobile Engineering</option>
+            </select>
+        </div>
+        <div class="col-md-6" id="new_donor_yog" style="display: none;">
+            <label for="donor_yog" class="form-label">Donor Year of Graduation <span class="text-danger">*</span></label>
+            <select class="form-select" id="donor_yog" name="donor_yog">
+                <option value="">Select Year</option>
+                {% for year in range(2030, 1969, -1) %}
+                <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="date_of_donation" class="form-label">Date of Donation</label>
+            <input type="date" class="form-control" id="date_of_donation" name="date_of_donation">
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Add Book</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block Booksscripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var donornameSelect = document.getElementById('donor_name');
+    var newDonorDetails = document.getElementById('new_donor_details');
+    var newDonordepartment = document.getElementById('new_donor_department');
+    var newDonorYog = document.getElementById('new_donor_yog');
+    var newDonornameInput = document.getElementById('new_donor_name');
+    var donordepartmentSelect = document.getElementById('donor_department');
+    var donorYogSelect = document.getElementById('donor_yog');
+    var dashboardContent = document.getElementById('dashboardcontent');
+    var addBooksContent = document.getElementById('addBooksContent');
+
+    if (dashboardContent && addBooksContent)  {         
+        dashboardContent.style.display = 'none';  // Hide dashboard content
+        addBooksContent.style.display = 'block';  // Display add books content
+    }
+
+    donornameSelect.addEventListener('change', function () {
+        console.log("donornameSelect value:", donornameSelect.value);  // Debugging log
+        if (donornameSelect.value === 'new_donor') {
+            console.log("Showing new donor details");  // Debugging log
+            // Display new donor details fields
+            newDonorDetails.style.display = 'block';
+            newDonordepartment.style.display = 'block';
+            newDonorYog.style.display = 'block';
+
+            // Set required attribute
+            newDonornameInput.setAttribute('required', 'required');
+            donordepartmentSelect.setAttribute('required', 'required');
+            donorYogSelect.setAttribute('required', 'required');
+        } else {
+            console.log("Hiding new donor details");  // Debugging log
+            // Hide new donor details fields
+            newDonorDetails.style.display = 'none';
+            newDonordepartment.style.display = 'none';
+            newDonorYog.style.display = 'none';
+
+            // Remove required attribute
+            newDonornameInput.removeAttribute('required');
+            donordepartmentSelect.removeAttribute('required');
+            donorYogSelect.removeAttribute('required');
+        }
+    });
+});
+</script>
+{% endblock %}

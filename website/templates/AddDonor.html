@@ -1,0 +1,68 @@
+{% extends "LibrarianHome.html" %}
+
+{% block Title %} Add Donor {% endblock %}
+
+
+{% block libcontent %}
+<div class="container" id="addDonorContent">
+    <h2>Add New Donor</h2>
+    <form method="POST" class="row g-3">
+        <div class="col-md-6">
+            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="col-md-6">
+            <label for="dept" class="form-label">Department <span class="text-danger">*</span></label>
+            <select class="form-select" id="dept" name="dept" required>
+                <option value="">Select Department</option>
+                <option value="CSE">Computer Science and Engineering</option>
+                <option value="ECE">Electronics and Communication Engineering</option>
+                <option value="EEE">Electrical and Electronics Engineering</option>
+                <option value="IT">Information Technology</option>
+                <option value="CIVIL">Civil Engineering</option>
+                <option value="MECH">Mechanical Engineering</option>
+                <option value="AUTO">Automobile Engineering</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="yog" class="form-label">Year of Graduation <span class="text-danger">*</span></label>
+            <select class="form-select" id="yog" name="yog" required>
+                <option value="">Select Year</option>
+                {% for year in range( 2030,1969,-1 ) %}
+                <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="mobilenumber" class="form-label">Mobile Number</label>
+            <input type="tel" class="form-control" id="mobilenumber" name="mobilenumber">
+        </div>
+        <div class="col-md-6">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email">
+        </div>
+        <div class="col-md-6">
+            <label for="address" class="form-label">Address</label>
+            <input type="text" class="form-control" id="address" name="address">
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Add Donor</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block Booksscripts %}
+<script>
+    // JavaScript to hide dashboard content and display addBooksContent on page load
+    document.addEventListener("DOMContentLoaded", function() {
+        var dashboardContent = document.getElementById('dashboardcontent');
+        var addBooksContent = document.getElementById('addDonorContent');
+
+        if (dashboardContent && addDonorContent) {
+            dashboardContent.style.display = 'none';  // Hide dashboard content
+            addBooksContent.style.display = 'block';  // Display add books form
+        }
+    });
+</script>
+{% endblock %}

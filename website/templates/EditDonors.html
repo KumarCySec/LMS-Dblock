@@ -1,0 +1,154 @@
+{% extends "LibrarianHome.html" %}
+
+{% block Title %} Edit Donor {% endblock %}
+
+{% block libcontent %}
+<div class="container my-4" id="editDonorContent">
+    <h2 class="mb-4">Edit Donor</h2>
+    <form method="GET" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="search" placeholder="Search by name" value="{{ search_query }}">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="dept">
+                <option value="">All departments</option>
+                <option value="CSE" {% if dept_filter == 'CSE' %}selected{% endif %}>Computer Science and Engineering</option>
+                <option value="ECE" {% if dept_filter == 'ECE' %}selected{% endif %}>Electronics and Communication Engineering</option>
+                <option value="EEE" {% if dept_filter == 'EEE' %}selected{% endif %}>Electrical and Electronics Engineering</option>
+                <option value="IT" {% if dept_filter == 'IT' %}selected{% endif %}>Information Technology</option>
+                <option value="CIVIL" {% if dept_filter == 'CIVIL' %}selected{% endif %}>Civil Engineering</option>
+                <option value="MECH" {% if dept_filter == 'MECH' %}selected{% endif %}>Mechanical Engineering</option>
+                <option value="AUTO" {% if dept_filter == 'AUTO' %}selected{% endif %}>Automobile Engineering</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="sort">
+                <option value="">Sort by Year of Graduation</option>
+                <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+                <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+    </form>
+    <div class="row mb-4">
+        <div class="col-md-12 text-end">
+            <a href="{{ url_for('lib.EditDonors') }}" class="btn btn-secondary">Show All</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th> S.No </th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Year of Graduation</th>
+                    <th>Mobile Number</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for donor in donors %}
+                <tr>
+                    <td> {{ loop.index }} </td>
+                    <td>{{ donor.name }}</td>
+                    <td>{{ donor.department }}</td>
+                    <td>{{ donor.year_of_graduation }}</td>
+                    <td>{{ donor.mobilenumber }}</td>
+                    <td>{{ donor.email }}</td>
+                    <td>{{ donor.address }}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ donor.id }}">Edit</button>
+                        <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ donor.id }}">Delete</button>
+                    </td>
+                </tr>
+
+                <!-- Edit Modal -->
+                <div class="modal fade" id="editModal{{ donor.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ donor.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ url_for('lib.EditDonors') }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editModalLabel{{ donor.id }}">Edit Donor</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" name="donor_id" value="{{ donor.id }}">
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Name</label>
+                                        <input type="text" class="form-control" name="name" value="{{ donor.name }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="dept" class="form-label">Department</label>
+                                        <select class="form-select" name="dept" required>
+                                            <option value="CSE" {% if donor.department == 'CSE' %}selected{% endif %}>Computer Science and Engineering</option>
+                                            <option value="ECE" {% if donor.department == 'ECE' %}selected{% endif %}>Electronics and Communication Engineering</option>
+                                            <option value="EEE" {% if donor.department == 'EEE' %}selected{% endif %}>Electrical and Electronics Engineering</option>
+                                            <option value="IT" {% if donor.department == 'IT' %}selected{% endif %}>Information Technology</option>
+                                            <option value="CIVIL" {% if donor.department == 'CIVIL' %}selected{% endif %}>Civil Engineering</option>
+                                            <option value="MECH" {% if donor.department == 'MECH' %}selected{% endif %}>Mechanical Engineering</option>
+                                            <option value="AUTO" {% if donor.department == 'AUTO' %}selected{% endif %}>Automobile Engineering</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="yog" class="form-label">Year of Graduation</label>
+                                        <input type="number" class="form-control" name="yog" value="{{ donor.year_of_graduation }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="mobilenumber" class="form-label">Mobile Number</label>
+                                        <input type="tel" class="form-control" name="mobilenumber" value="{{ donor.mobilenumber }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" name="email" value="{{ donor.email }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="address" class="form-label">Address</label>
+                                        <input type="text" class="form-control" name="address" value="{{ donor.address }}">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary" name="action" value="edit">Save changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteModal{{ donor.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ donor.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ url_for('lib.EditDonors') }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel{{ donor.id }}">Delete Donor</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" name="donor_id" value="{{ donor.id }}">
+                                    <p>Are you sure you want to delete donor <strong>{{ donor.name }}</strong>?</p>
+                                    <p>This action will remove the donor's details from all associated books.</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-danger" name="action" value="delete">Delete</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block Booksscripts %}
+
+{% endblock %}

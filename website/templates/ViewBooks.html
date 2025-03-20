@@ -1,0 +1,95 @@
+{% extends "LibrarianHome.html" %}
+
+{% block libcontent %}
+<div class="container my-4" id="viewBooksContent">
+    <h2 class="mb-4">View Books</h2>
+    <form method="GET" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="search" placeholder="Search by Title or Author" value="{{ search_query }}">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="language">
+                <option value="">All Languages</option>
+                {% for lang in unique_languages %}
+                <option value="{{ lang }}" {% if lang_filter == lang %}selected{% endif %}>{{ lang }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+        <div class="col-md-2">
+            <a href="{{ url_for('lib.ViewBooks') }}" class="btn btn-secondary w-100">Reset Filters</a>
+        </div>
+    </form>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for book in books.items %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ book.title }}</h5>
+                    <p class="card-text">Author: {{ book.author }}</p>
+                    <p class="card-text">Language: {{ book.language }}</p>
+                    <p class="card-text">Published Date: {% if book.published_date %}{{ book.published_date.strftime('%d-%m-%Y') }}{% else %}N/A{% endif %}</p>
+                    <p class="card-text">Quantity: {{ book.quantity }}</p>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookModal{{ book.id }}">
+                        View Donor Details
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="bookModal{{ book.id }}" tabindex="-1" aria-labelledby="bookModalLabel{{ book.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="bookModalLabel{{ book.id }}">{{ book.title }}'s Donor Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6>Donor Details:</h6>
+                        <p><strong>Name:</strong> {{ book.donor.name }}</p>
+                        <p><strong>Department:</strong> {{ book.donor.department }}</p>
+                        <p><strong>Year of Graduation:</strong> {{ book.donor.year_of_graduation }}</p>
+                        <p><strong>Date of Donation</strong> {{ book.date_of_donation.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Books Pagination">
+        <ul class="pagination justify-content-center mt-4">
+            {% if books.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ books.prev_num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if lang_filter %}&language={{ lang_filter }}{% endif %}">Previous</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+            {% endif %}
+
+            {% for page in books.iter_pages() %}
+            {% if page %}
+            <li class="page-item{% if books.page == page %} active{% endif %}"><a class="page-link" href="?page={{ page }}{% if search_query %}&search={{ search_query }}{% endif %}{% if lang_filter %}&language={{ lang_filter }}{% endif %}">{{ page }}</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+
+            {% if books.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ books.next_num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if lang_filter %}&language={{ lang_filter }}{% endif %}">Next</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}
+
+{% block Booksscripts %}
+
+{% endblock %}

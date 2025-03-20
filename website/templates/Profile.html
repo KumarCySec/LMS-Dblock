@@ -1,0 +1,58 @@
+{% extends 'BaseFormat.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Profile</h2>
+    <form method="post" enctype="multipart/form-data">
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-4 text-center">
+                <img src="{{ user.profile_picture_url or url_for('static', filename='img/default-profile.jpg') }}" class="rounded-circle img-thumbnail" alt="Profile Picture" id="profilePicturePreview" style="width: 150px; height: 150px;">
+                <div class="mt-3">
+                    <label for="profile_picture" class="form-label">Profile Picture</label>
+                    <input class="form-control" type="file" id="profile_picture" name="profile_picture" accept="image/*" onchange="previewProfilePicture(event)">
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="role" class="form-label">Role</label>
+            <input type="text" class="form-control" id="role" name="role" value="{{ user.role }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="roll_number" class="form-label">Roll Number</label>
+            <input type="number" class="form-control" id="roll_number" name="roll_number" value="{{ user.roll_number }}">
+        </div>
+        <div class="mb-3">
+            <label for="phone_number" class="form-label">Phone Number</label>
+            <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ user.phone_number }}">
+        </div>
+        <div class="mb-3">
+            <label for="department" class="form-label">Department</label>
+            <input type="text" class="form-control" id="department" name="department" value="{{ user.department }}">
+        </div>
+        <div class="mb-3">
+            <label for="year_of_graduation" class="form-label">Year of Graduation</label>
+            <input type="number" class="form-control" id="year_of_graduation" name="year_of_graduation" value="{{ user.year_of_graduation }}">
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+    </form>
+</div>
+
+<script>
+function previewProfilePicture(event) {
+    var reader = new FileReader();
+    reader.onload = function(){
+        var output = document.getElementById('profilePicturePreview');
+        output.src = reader.result;
+    };
+    reader.readAsDataURL(event.target.files[0]);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Students</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Add viewport meta tag for responsiveness -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+    {% extends "LibrarianHome.html" %}
+
+    {% block libcontent %}
+    <div class="container my-4" id="manageStudentsContent">
+        <h2 class="mb-4">Manage Students</h2>
+
+        <!-- Tab Navigation for Mobile View -->
+        <ul class="nav nav-tabs nav-justified flex-column flex-md-row" id="studentTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link" id="unverified-tab" data-toggle="tab" href="#unverified" role="tab"
+                    aria-controls="unverified" aria-selected="false">Unverified Students</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" id="verified-tab" data-toggle="tab" href="#verified" role="tab"
+                    aria-controls="verified" aria-selected="true">Verified Students</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="rejected-tab" data-toggle="tab" href="#rejected" role="tab"
+                    aria-controls="rejected" aria-selected="false">Rejected Students</a>
+            </li>
+        </ul>
+
+
+
+        <div class="tab-content" id="studentTabContent">
+            <!-- Verified Students Tab -->
+            <div class="tab-pane fade show active" id="verified" role="tabpanel" aria-labelledby="verified-tab">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h3>Verified Students</h3>
+                        <!-- Card View for Mobile -->
+                        <div class="d-block d-md-none">
+                            {% for student in verified_students %}
+                            <div class="card student-card" data-toggle="modal"
+                                data-target="#studentDetailsModal-{{ student.id }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ student.name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Roll Number:</strong> {{ student.roll_number }}<br>
+                                        <strong>Email:</strong> {{ student.email }}<br>
+                                        <strong>Role:</strong> {{ student.role }}
+                                    </p>
+                                    <form method="POST" action="{{ url_for('lib.manage_students') }}"
+                                        style="display:inline;">
+                                        {{ form.csrf_token }}
+                                        <input type="hidden" name="student_id" value="{{ student.id }}">
+                                        {% if student.role == 'Student' %}
+                                        <button type="submit" class="btn btn-info btn-sm" name="action"
+                                            value="promote_to_volunteer">Promote</button>
+                                        {% elif student.role == 'Volunteer' %}
+                                        <button type="submit" class="btn btn-warning btn-sm" name="action"
+                                            value="depromote_to_student">Depromote</button>{% endif %}
+                                    </form>
+                                    <form method="POST" action="{{ url_for('lib.manage_students') }}"
+                                        style="display:inline;">
+                                        {{ form.csrf_token }}
+                                        <input type="hidden" name="student_id" value="{{ student.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                            value="deverify">Deverify</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <!-- Table View for Desktop -->
+                        <div class="d-none d-md-block">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>S.no.</th>
+                                        <th>Name</th>
+                                        <th>Roll Number</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in verified_students %}
+                                    <tr class="student-row" data-toggle="modal"
+                                        data-target="#studentDetailsModal-{{ student.id }}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ student.name }}</td>
+                                        <td>{{ student.roll_number }}</td>
+                                        <td>{{ student.email }}</td>
+                                        <td>{{ student.role }}</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('lib.manage_students') }}"
+                                            style="display:inline;">
+                                            {{ form.csrf_token }}
+                                            <input type="hidden" name="student_id" value="{{ student.id }}">
+                                            {% if student.role == 'Student' %}
+                                            <button type="submit" class="btn btn-info btn-sm" name="action"
+                                                value="promote_to_volunteer"
+                                                aria-label="Promote {{ student.name }}">Promote</button>
+                                            {% elif student.role == 'Volunteer' %}
+                                            <button type="submit" class="btn btn-warning btn-sm" name="action"
+                                                value="depromote_to_student"
+                                                aria-label="Depromote {{ student.name }}">Depromote</button>
+                                            {% endif %}
+                                        </form>
+                                            <form method="POST" action="{{ url_for('lib.manage_students') }}"
+                                                style="display:inline;">
+                                                {{ form.csrf_token }}
+                                                <input type="hidden" name="student_id" value="{{ student.id }}">
+                                                <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                                    value="deverify"
+                                                    aria-label="Deverify {{ student.name }}">Deverify</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unverified Students Tab -->
+            <div class="tab-pane fade" id="unverified" role="tabpanel" aria-labelledby="unverified-tab">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h3>Unverified Students</h3>
+
+                        <!-- Card View for Mobile -->
+                        <div class="d-block d-md-none">
+                            {% for student in unverified_students %}
+                            <div class="card student-card" data-toggle="modal"
+                                data-target="#studentDetailsModal-{{ student.id }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ student.name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Roll number:</strong> {{ student.roll_number }}<br>
+                                        <strong>Email:</strong> {{ student.email }}
+                                    </p>
+                                    <form method="POST" action="{{ url_for('lib.manage_students') }}">
+                                        {{ form.csrf_token }}
+                                        <input type="hidden" name="student_id" value="{{ student.id }}">
+                                        <button type="submit" class="btn btn-success btn-sm" name="action"
+                                            value="verify">Verify</button>
+                                        <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                            value="reject">Reject</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Table View for Desktop -->
+                        <div class="d-none d-md-block">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>S.no.</th>
+                                        <th>Name</th>
+                                        <th>Roll number</th>
+                                        <th>Email</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in unverified_students %}
+                                    <tr class="student-row" data-toggle="modal"
+                                        data-target="#studentDetailsModal-{{ student.id }}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ student.name }}</td>
+                                        <td>{{ student.roll_number }}</td>
+                                        <td>{{ student.email }}</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('lib.manage_students') }}">
+                                                {{ form.csrf_token }}
+                                                <input type="hidden" name="student_id" value="{{ student.id }}">
+                                                <button type="submit" class="btn btn-success btn-sm" name="action"
+                                                    value="verify"
+                                                    aria-label="Verify {{ student.name }}">Verify</button>
+                                                <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                                    value="reject"
+                                                    aria-label="Reject {{ student.name }}">Reject</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rejected Students Tab -->
+            <div class="tab-pane fade" id="rejected" role="tabpanel" aria-labelledby="rejected-tab">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h3>Rejected Students</h3>
+
+                        <!-- Delete All Rejected Button -->
+                        <form method="POST" action="{{ url_for('lib.manage_students') }}" class="mb-3">
+                            {{ form.csrf_token }}
+                            <button type="submit" class="btn btn-danger" name="action"
+                                value="delete_all_rejected">Delete All Rejected</button>
+                        </form>
+
+                        <!-- Card View for Mobile -->
+                        <div class="d-block d-md-none">
+                            {% for student in rejected_students %}
+                            <div class="card student-card" data-toggle="modal"
+                                data-target="#studentDetailsModal-{{ student.id }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ student.name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Roll number:</strong> {{ student.roll_number }}<br>
+                                        <strong>Email:</strong> {{ student.email }}
+                                    </p>
+                                    <form method="POST" action="{{ url_for('lib.manage_students') }}">
+                                        {{ form.csrf_token }}
+                                        <input type="hidden" name="student_id" value="{{ student.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                            value="delete">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Table View for Desktop -->
+                        <div class="d-none d-md-block">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>S.no.</th>
+                                        <th>Name</th>
+                                        <th>Roll number</th>
+                                        <th>Email</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in rejected_students %}
+                                    <tr class="student-row" data-toggle="modal"
+                                        data-target="#studentDetailsModal-{{ student.id }}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ student.name }}</td>
+                                        <td>{{ student.roll_number }}</td>
+                                        <td>{{ student.email }}</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('lib.manage_students') }}">
+                                                {{ form.csrf_token }}
+                                                <input type="hidden" name="student_id" value="{{ student.id }}">
+                                                <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                                    value="delete"
+                                                    aria-label="Delete {{ student.name }}">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Student Details -->
+        {% for student in verified_students + unverified_students %}
+        <div class="modal fade" id="studentDetailsModal-{{ student.id }}" tabindex="-1" role="dialog"
+            aria-labelledby="studentDetailsModalLabel-{{ student.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="studentDetailsModalLabel-{{ student.id }}">{{ student.name }}
+                            Details</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Name:</strong> {{ student.name }}</p>
+                        <p><strong>Roll Number:</strong> {{ student.roll_number }}</p>
+                        <p><strong>Department:</strong> {{ student.department }}</p>
+                        <p><strong>Year of Graduation:</strong> {{ student.year_of_graduation }}</p>
+                        <p><strong>Email:</strong> {{ student.email }}</p>
+                        <p><strong>Mobile Number :</strong> {{ student.phone_number }}</p>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <style>
+        @media (max-width: 576px) {
+            .nav-tabs .nav-item {
+                width: 100%;
+            }
+
+            .nav-tabs .nav-link {
+                text-align: center;
+            }
+        }
+    </style>
+    {% endblock %}
+
+    {% block Booksscripts %}
+    <!-- Ensure jQuery is included before Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Hide dashboard content and display manage students content
+            var dashboardContent = $('#dashboardcontent');
+            var manageStudentsContent = $('#manageStudentsContent');
+
+            if (dashboardContent.length && manageStudentsContent.length) {
+                dashboardContent.hide();
+                manageStudentsContent.show();
+            }
+
+            // Filter functionality
+            $('.filter-btn').on('click', function () {
+                var role = $(this).data('role');
+                $('.student-card').each(function () {
+                    if (role === 'all' || $(this).data('role') === role) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // Handle click on student card to show modal (for mobile)
+            $('.student-card').on('click', function () {
+                var targetModal = $(this).data('target');
+                $(targetModal).modal('show');
+            });
+
+            // Handle click on student row to show modal (for desktop)
+            $('.student-row').on('click', function () {
+                var targetModal = $(this).data('target');
+                $(targetModal).modal('show');
+            });
+
+            // Prevent modal from showing when action buttons are clicked
+            $('form button').on('click', function (event) {
+                event.stopPropagation();
+            });
+
+            // Ensure modal close button works
+            $('.close, .btn-secondary').on('click', function () {
+                $('.modal').modal('hide');
+            });
+
+            // Fix for unverified tab not switching
+            $('#unverified-tab').on('click', function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+                $('#verified').removeClass('show active');
+                $('#rejected').removeClass('show active');
+                $('#unverified').addClass('show active');
+            });
+
+            // Fix for verified tab switching back
+            $('#verified-tab').on('click', function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+                $('#unverified').removeClass('show active');
+                $('#rejected').removeClass('show active');
+                $('#verified').addClass('show active');
+            });
+
+            // Fix for rejected tab switching back
+            $('#rejected-tab').on('click', function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+                $('#unverified').removeClass('show active');
+                $('#verified').removeClass('show active');
+                $('#rejected').addClass('show active');
+            });
+
+            // Fix for modal backdrop not closing
+            $('.modal').on('hidden.bs.modal', function () {
+                $(this).removeClass('show');
+                $('.modal-backdrop').remove();
+            });
+        });
+    </script>
+    {% endblock %}
+</body>
+
+</html>

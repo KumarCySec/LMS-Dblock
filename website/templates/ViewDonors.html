@@ -1,0 +1,98 @@
+{% extends "LibrarianHome.html" %}
+
+{% block libcontent %}
+<div class="container my-4" id="viewDonorContent">
+    <h2 class="mb-4">View Donors</h2>
+    <form method="GET" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="search" placeholder="Search by name" value="{{ search_query }}">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="dept">
+                <option value="">All departments</option>
+                <option value="CSE" {% if dept_filter == 'CSE' %}selected{% endif %}>Computer Science and Engineering</option>
+                <option value="ECE" {% if dept_filter == 'ECE' %}selected{% endif %}>Electronics and Communication Engineering</option>
+                <option value="EEE" {% if dept_filter == 'EEE' %}selected{% endif %}>Electrical and Electronics Engineering</option>
+                <option value="IT" {% if dept_filter == 'IT' %}selected{% endif %}>Information Technology</option>
+                <option value="CIVIL" {% if dept_filter == 'CIVIL' %}selected{% endif %}>Civil Engineering</option>
+                <option value="MECH" {% if dept_filter == 'MECH' %}selected{% endif %}>Mechanical Engineering</option>
+                <option value="AUTO" {% if dept_filter == 'AUTO' %}selected{% endif %}>Automobile Engineering</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="sort">
+                <option value="">Sort by Year of Graduation</option>
+                <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+                <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+    </form>
+    <div class="row mb-4">
+        <div class="col-md-12 text-end">
+            <a href="{{ url_for('lib.ViewDonors') }}" class="btn btn-secondary">Show All</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>S.no.</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Year of Graduation</th>
+                    <th>Mobile Number</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for donor in donors %}
+                <tr data-bs-toggle="modal" data-bs-target="#donorModal{{ donor.id }}">
+                    <td>{{ loop.index }}</td>
+                    <td>{{ donor.name }}</td>
+                    <td>{{ donor.department }}</td>
+                    <td>{{ donor.year_of_graduation }}</td>
+                    <td>{{ donor.mobilenumber }}</td>
+                    <td>{{ donor.email }}</td>
+                    <td>{{ donor.address }}</td>
+                </tr>
+
+                <!-- Modal -->
+                <div class="modal fade" id="donorModal{{ donor.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">{{ donor.name }}'s Donations</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <h6>Donor Details:</h6>
+                                <p><strong>Name:</strong> {{ donor.name }}</p>
+                                <p><strong>Department:</strong> {{ donor.department }}</p>
+                                <p><strong>Year of Graduation:</strong> {{ donor.year_of_graduation }}</p>
+                                <h6>Books Donated:</h6>
+                                <ul>
+                                    {% for book in donor.books %}
+                                    <li>{{ book.title }} - Donated on {{ book.date_of_donation.strftime('%d-%m-%Y') }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block Booksscripts %}
+
+{% endblock %}

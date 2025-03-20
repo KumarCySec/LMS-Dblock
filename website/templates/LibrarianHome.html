@@ -1,0 +1,87 @@
+{% extends "BaseFormat.html" %}
+
+{% block Title %}Librarian Home{% endblock %}
+{% block User %}Librarian{% endblock %}
+
+    
+    {% block Sidebar %}
+
+    <li class="sidebar-item">
+        <a href="#" class="sidebar-link collapsed" data-bs-target="#CHECKOUT" data-bs-toggle="collapse" aria-expanded="false" aria-controls="BOOKS">
+            <i class="fa-solid fa-file-lines pe-2"></i>
+            Checkout Management
+        </a>
+        <ul id="CHECKOUT" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+            <li class="sidebar-item">
+                <a href="{{ url_for('lib.direct_checkout') }}" class="sidebar-link">Direct Checkout</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{{ url_for('lib.manage_checkouts') }}" class="sidebar-link">Verify Checkout Requests</a>
+            </li>
+        </ul>
+    </li>
+    
+    <li class="sidebar-item">
+        <a href="#" class="sidebar-link collapsed" data-bs-target="#BOOKS" data-bs-toggle="collapse" aria-expanded="false" aria-controls="BOOKS">
+            <i class="fa-solid fa-file-lines pe-2"></i>
+            Book Management
+        </a>
+        <ul id="BOOKS" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+            <li class="sidebar-item">
+                <a href="{{ url_for('lib.ViewBooks') }}" class="sidebar-link">View Books</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{{ url_for('lib.AddBooks') }}" class="sidebar-link">Add Books</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{{ url_for('lib.EditBooks') }}" class="sidebar-link">Edit Books</a>
+            </li>
+        </ul>
+    </li>
+    
+    <li class="sidebar-item">
+        <a href="#" class="sidebar-link collapsed" data-bs-target="#STUDENTS" data-bs-toggle="collapse" aria-expanded="false" aria-controls="STUDENTS">
+            <i class="fa-solid fa-file-lines pe-2"></i>
+            Student Management
+        </a>
+        <ul id="STUDENTS" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+            <li class="sidebar-item">
+                <a href="{{ url_for('lib.EditStudentsDetails') }}" class="sidebar-link">View & Edit Student Details</a>
+            </li>
+        </ul>
+    </li>
+    
+    <li class="sidebar-item">
+        <a href="#" class="sidebar-link collapsed" data-bs-target="#DONOR" data-bs-toggle="collapse" aria-expanded="false" aria-controls="DONOR">
+            <i class="fa-solid fa-file-lines pe-2"></i>
+            Donor Management
+        </a>
+        <ul id="DONOR" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+            <li class="sidebar-item">
+                <a href="{{ url_for('lib.AddDonor') }}" class="sidebar-link">Add Donor</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{{ url_for('lib.ViewDonors') }}" class="sidebar-link">View Donor Details</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{{ url_for('lib.EditDonors') }}" class="sidebar-link">Edit Donor Details</a>
+            </li>
+        </ul>
+    </li>
+    <li class="sidebar-item">
+        <a href="{{ url_for('lib.manage_students') }}" id="dashboardLink" class="sidebar-link" aria-label="Checkout Management">
+            <i class="fa-solid fa-list pe-2"></i>
+            Verify Student Accounts
+        </a>
+    </li>
+    {% endblock %}
+    
+    {% block content %}
+    {% block libcontent %}{% endblock %}
+    {% endblock %}
+    
+    {% block scripts %}
+    {% block Booksscripts %}{% endblock %}
+    {% endblock %}
+    
+

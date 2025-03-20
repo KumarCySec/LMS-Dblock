@@ -1,0 +1,85 @@
+{% extends "BaseFormat.html" %}
+
+{% block Title %} Student Home {% endblock %}
+{% block User %} Student {% endblock %}
+
+{% block Sidebar %}
+<li class="sidebar-item">
+    <a href="{{ url_for('stu.MyBooks') }}" id="dashboardLink" class="sidebar-link">
+        <i class="fa-solid fa-list pe-2"></i>
+        My Books
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="#" class="sidebar-link collapsed" data-bs-target="#BOOKS" data-bs-toggle="collapse"
+        aria-expanded="false"><i class="fa-solid fa-file-lines pe-2"></i>
+        Catalog
+    </a>
+    <ul id="BOOKS" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+        <li class="sidebar-item">
+            <a href="{{ url_for('stu.ViewBooks') }}" class="sidebar-link">View Books</a>
+        </li>
+        <li class="sidebar-item">
+            <a href="{{ url_for('stu.CheckoutBooks') }}" class="sidebar-link">Checkout Books</a>
+        </li>
+        <li class="sidebar-item">
+            <a href="#" class="sidebar-link">Return Books</a>
+        </li>
+    </ul>
+</li>
+{% endblock %}
+
+{% block content %} {% block stucontent %} {% endblock %} {% endblock %}
+{% block scripts %} {% block stuscripts %} {% endblock %} {% endblock %}
+
+<style>
+    /* Custom styles for the Next Due Date card */
+    .card-next-due {
+        background-color: #f8f9fa;
+        /* Light gray background color */
+        border-radius: 10px;
+        /* Rounded corners */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        /* Shadow effect */
+    }
+
+    .card-next-due .card-title {
+        color: #007bff;
+        /* Blue title color */
+    }
+
+    .card-next-due p {
+        margin-bottom: 0.5rem;
+        /* Bottom margin for paragraphs */
+    }
+
+    /* Custom styles for the Next Due Date and Checked Out Books card */
+    .card-checked-out {
+        background-color: #f8f9fa;
+        /* Light gray background color */
+        border-radius: 10px;
+        /* Rounded corners */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        /* Shadow effect */
+    }
+
+    .card-checked-out .card-title {
+        color: #007bff;
+        /* Blue title color */
+    }
+
+    .card-checked-out .table th {
+        width: 50%;
+        /* Set table header width */
+    }
+
+    .card-checked-out .table td {
+        text-align: center;
+        /* Center-align table cells */
+    }
+
+    .display-4 {
+        font-size: 3rem;
+        /* Larger font size for numbers */
+    }
+</style>

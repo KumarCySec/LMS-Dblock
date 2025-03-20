@@ -1,0 +1,303 @@
+{% extends "LibrarianHome.html" %}
+
+{% block libcontent %}
+<div class="container my-4" id="verifyCheckoutContent">
+    <h2 class="mb-4">Verify Checkout Requests</h2>
+
+    <!-- Tab Navigation for Mobile View -->
+    <ul class="nav nav-tabs nav-justified flex-column flex-md-row" id="studentTab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="pending_requests-tab" data-toggle="tab" href="#pending_requests" role="tab"
+                aria-controls="pending_requests" aria-selected="true">Pending Checkouts</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="verified-tab" data-toggle="tab" href="#verified" role="tab" aria-controls="verified"
+                aria-selected="false">Approved Checkouts</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="rejected-tab" data-toggle="tab" href="#rejected" role="tab" aria-controls="rejected"
+                aria-selected="false">Rejected Checkouts</a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="studentTabContent">
+        <!-- Pending Checkouts Tab -->
+        <div class="tab-pane fade show active" id="pending_requests" role="tabpanel"
+            aria-labelledby="pending_requests-tab">
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h3>Pending Checkouts</h3>
+                    <!-- Card View for Mobile -->
+                    <div class="d-block d-md-none">
+                        {% for book in borrowed_books %}
+                        <div class="card student-card" data-toggle="modal"
+                            data-target="#studentDetailsModal-{{ book.student.id }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ book.book.title }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ book.book.author }}</h6>
+                                <p class="card-text">
+                                    <strong>Student Name:</strong> {{ book.student.name }}<br>
+                                    <strong>Roll No.:</strong> {{ book.student.roll_number }} <br>
+                                    <strong>Borrowed Date:</strong> {{ book.borrowed_date.strftime('%d-%m-%Y')
+                                    }} <br>
+                                </p>
+                                <form method="POST" action="{{ url_for('lib.manage_checkouts') }}">
+                                    {{ form.csrf_token }}
+                                    <input type="hidden" name="borrowed_book_id" value="{{ book.id }}">
+                                    <button type="submit" class="btn btn-success btn-sm" name="action"
+                                        value="approve">Approve</button>
+                                    <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                        value="reject">Reject</button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Table View for Desktop -->
+                    <div class="d-none d-md-block">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Book Title</th>
+                                    <th>Author</th>
+                                    <th>Student Name</th>
+                                    <th>Roll number</th>
+                                    <th>Borrowed Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for book in borrowed_books %}
+                                <tr class="student-row" data-toggle="modal"
+                                    data-target="#studentDetailsModal-{{ book.student.id }}">
+                                    <td>{{ book.book.title }}</td>
+                                    <td>{{ book.book.author }}</td>
+                                    <td>{{ book.student.name }}</td>
+                                    <td>{{ book.student.roll_number }}</td>
+                                    <td>{{ book.borrowed_date.strftime('%d-%m-%Y') }}</td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('lib.manage_checkouts') }}">
+                                            {{ form.csrf_token }}
+                                            <input type="hidden" name="borrowed_book_id"
+                                                value="{{ book.id }}">
+                                            <button type="submit" class="btn btn-success btn-sm" name="action"
+                                                value="approve">Approve</button>
+                                            <button type="submit" class="btn btn-danger btn-sm" name="action"
+                                                value="reject">Reject</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Approved Checkouts Tab -->
+        <div class="tab-pane fade" id="verified" role="tabpanel" aria-labelledby="verified-tab">
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h3>Approved Checkouts</h3>
+                    <!-- Card View for Mobile -->
+                    <div class="d-block d-md-none">
+                        {% for book in approved_books %}
+                        <div class="card student-card" data-toggle="modal"
+                            data-target="#studentDetailsModal-{{ book.id }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ book.book.title }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ book.book_id.author }}</h6>
+                                <p class="card-text">
+                                    <strong>Student Name:</strong> {{ book.student.name }}<br>
+                                    <strong>Roll No.:</strong> {{ book.student.roll_number }} <br>
+                                    <strong>Borrowed Date:</strong> {{ book.borrowed_date.strftime('%d-%m-%Y')
+                                    }} <br>
+                                </p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Table View for Desktop -->
+                    <div class="d-none d-md-block">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Book Title</th>
+                                    <th>Author</th>
+                                    <th>Student Name</th>
+                                    <th>Roll number</th>
+                                    <th>Borrowed Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for book in approved_books %}
+                                <tr>
+                                    <td>{{ book.book.title }}</td>
+                                    <td>{{ book.book.author }}</td>
+                                    <td>{{ book.student.name }}</td>
+                                    <td>{{ book.student.roll_number }}</td>
+                                    <td>{{ book.borrowed_date.strftime('%d-%m-%Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rejected Checkouts Tab -->
+        <div class="tab-pane fade" id="rejected" role="tabpanel" aria-labelledby="rejected-tab">
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h3>Rejected Checkouts</h3>
+                    <!-- Card View for Mobile -->
+                    <div class="d-block d-md-none">
+                        {% for book in rejected_checkouts %}
+                        <div class="card student-card" data-toggle="modal"
+                            data-target="#studentDetailsModal-{{ book.id }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ book.book.title }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ book.book.author }}</h6>
+                                <p class="card-text">
+                                    <strong>Student Name:</strong> {{ book.student.name }}<br>
+                                    <strong>Roll No.:</strong> {{ book.student.roll_number }} <br>
+                                    <strong>Borrowed Date:</strong> {{ book.borrowed_date.strftime('%d-%m-%Y')
+                                    }} <br>
+                                </p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Table View for Desktop -->
+                    <div class="d-none d-md-block">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Book Title</th>
+                                    <th>Author</th>
+                                    <th>Student Name</th>
+                                    <th>Roll number</th>
+                                    <th>Borrowed Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for book in rejected_checkouts %}
+                                <tr>
+                                    <td>{{ book.book.title }}</td>
+                                    <td>{{ book.book.author }}</td>
+                                    <td>{{ book.student.name }}</td>
+                                    <td>{{ book.student.roll_number }}</td>
+                                    <td>{{ book.borrowed_date.strftime('%d-%m-%Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modals for Student Details -->
+    <!-- Modals for each borrowed book -->
+    {% for book in borrowed_books %}
+    <div class="modal fade" id="studentDetailsModal-{{ book.student.id }}" tabindex="-1" role="dialog" aria-labelledby="studentDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="studentDetailsModalLabel">{{ book.student.name }} ==> {{  book.book.title }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Tabs navigation -->
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="book-info-tab-{{ book.id }}" data-toggle="tab" href="#book-info-{{ book.id }}" role="tab" aria-controls="book-info-{{ book.id }}" aria-selected="true">Book Info</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="student-info-tab-{{ book.student.id }}" data-toggle="tab" href="#student-info-{{ book.student.id }}" role="tab" aria-controls="student-info-{{ book.student.id }}" aria-selected="false">Student Info</a>
+                        </li>
+                    </ul>
+                    
+                    <!-- Tabs content -->
+                    <div class="tab-content mt-3" id="myTabContent">
+                        <!-- Book Info tab -->
+                        <div class="tab-pane fade show active" id="book-info-{{ book.id }}" role="tabpanel" aria-labelledby="book-info-tab-{{ book.id }}">
+                            <p><strong>Book Title:</strong> {{ book.book.title }}</p>
+                            <p><strong>Author:</strong> {{ book.book.author }}</p>
+                            <p><strong>Borrowed Date:</strong> {{ book.borrowed_date.strftime('%d-%m-%Y') }}</p>
+                            <p><strong>Due Date:</strong> {{ book.due_date.strftime('%d-%m-%Y') }}</p>
+                            <!-- Add more book details as needed -->
+                        </div>
+                        
+                        <!-- Student Info tab -->
+                        <div class="tab-pane fade" id="student-info-{{ book.student.id }}" role="tabpanel" aria-labelledby="student-info-tab-{{ book.student.id }}">
+                            <p><strong>Student Name:</strong> {{ book.student.name }}</p>
+                            <p><strong>Roll Number:</strong> {{ book.student.roll_number }}</p>
+                            <p><strong>Department:</strong> {{ book.student.department }}</p>
+                            <p><strong>Email:</strong> {{ book.student.email }}</p>
+                            <p><strong>Phone Number:</strong> {{ book.student.phone_number }}</p>
+                            <p><strong>Year of Graduation:</strong> {{ book.student.year_of_graduation }}</p>
+                            <!-- Add more student details as needed -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <!-- Add buttons for additional actions if needed -->
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+
+<!-- Bootstrap JS and jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom Script -->
+<script>
+    $(document).ready(function () {
+        // Handle tab switching for mobile view
+        $('.nav-link').on('click', function () {
+            var targetTab = $(this).attr('href');
+            $(targetTab).addClass('show active').siblings().removeClass('show active');
+        });
+
+        // Handle click on student card to show modal (for mobile)
+        $('.student-card').on('click', function () {
+            var targetModal = $(this).data('target');
+            $(targetModal).modal('show');
+        });
+
+        // Handle click on student row to show modal (for desktop)
+        $('.student-row').on('click', function () {
+            var targetModal = $(this).data('target');
+            $(targetModal).modal('show');
+        });
+
+        // Prevent modal from showing when action buttons are clicked
+        $('form button[type="submit"]').on('click', function (event) {
+            event.stopPropagation();
+        });
+
+        // Ensure modal close button works
+        $('.modal .close, .modal .btn-secondary').on('click', function () {
+            $(this).closest('.modal').modal('hide');
+        });
+
+        // Fix for modal backdrop not closing
+        $('.modal').on('hidden.bs.modal', function () {
+            $(this).removeClass('show');
+            $('.modal-backdrop').remove();
+        });
+    });
+</script>
+{% endblock %}

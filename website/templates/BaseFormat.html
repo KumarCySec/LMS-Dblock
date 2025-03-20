@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Library Management System">
+    <meta name="author" content="Kishore Kumar S">
+    <title>{% block Title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://kit.fontawesome.com/193ab26b23.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/BaseFormat.css') }}">
+</head>
+
+<body>
+    <div class="wrapper">
+        <aside id="sidebar" class="js-sidebar" aria-label="Sidebar">
+            <div class="h-100">
+                <div class="sidebar-logo">
+                    <a href="#">LMS</a>
+                </div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item">
+                        <a href="#" id="dashboardLink" class="sidebar-link">
+                            <i class="fa-solid fa-list pe-2"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    {% block Sidebar %}{% endblock %}
+                </ul>
+            </div>
+        </aside>
+        <div class="main">
+            <nav class="navbar navbar-expand px-3 border-bottom">
+                <button class="btn" id="sidebar-toggle" type="button" aria-label="Toggle sidebar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse">
+                    <h4 class="mx-auto">D Block Library, GCE Erode</h4>
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item dropdown">
+                            <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0" aria-label="User menu">
+                                <img src="{{ url_for('static', filename='img/profile.jpg') }}" class="avatar img-fluid rounded" alt="Profile Picture">
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a href="{{ url_for('stu.profile')}}" class="dropdown-item">Profile</a>
+                                <a href="{{ url_for('views.settings')}}" class="dropdown-item">Settings</a>
+                                <a href="{{ url_for('auth.logout', _external=True) }}" class="dropdown-item">Logout</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            {% block Main %}
+            {% endblock %}
+
+            <main class="content px-3 py-2">
+                {% block content %}{% endblock %}
+            </main>
+                <a href="#" class="theme-toggle">
+                <i class="fa-regular fa-moon"></i>
+                <i class="fa-regular fa-sun"></i>
+            </a>
+            <footer class="footer">
+                <div class="container-fluid">
+                    <div class="row text-muted">
+                        <div class="col-6 text-start">
+                            <p class="mb-0">
+                                <a href="https://www.linkedin.com/in/kishorekumaroffsec" class="text-muted">
+                                    <strong>Kishore Kumar S</strong>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-6 text-end">
+                            <ul class="list-inline">
+                                <li class="list-inline-item">
+                                    <a href="#" class="text-muted">Contact</a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a href="#" class="text-muted">About Us</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+        <!-- Flash messages handling -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Function to handle closing flash messages
+                function closeFlashMessage(alertElement) {
+                    alertElement.style.display = 'none';
+                }
+
+                // Auto-hide flash messages after 5 seconds
+                setTimeout(function () {
+                    var alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(function (alert) {
+                        closeFlashMessage(alert);
+                    });
+                }, 5000); // 5000 milliseconds = 5 seconds
+
+                // Close button functionality
+                var closeButtons = document.querySelectorAll('.close-btn');
+                closeButtons.forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        var alert = this.closest('.alert');
+                        closeFlashMessage(alert);
+                    });
+                });
+            });
+        </script>
+
+        <!-- Flash message rendering -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <span>{{ message }}</span>
+                        <span class="close-btn">&times;</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block scripts %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/BaseFormat.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var dashboardLink = document.getElementById('dashboardLink');
+            if (dashboardLink) {
+                dashboardLink.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    window.location.href = '/home';
+                });
+            }
+        });
+    </script>
+
+</body>
+
+
+
+<style>
+    /* Style for flash messages */
+    .alert {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+        color: white; /* Set font color to white */
+
+
+    }
+
+    .alert-error {
+        background-color: #ff6347; /* Red color for error messages */
+    }
+
+    .alert-success {
+        background-color: #32cd32; /* Green color for success messages */
+    }
+
+    .close-btn {
+        cursor: pointer;
+        float: right;
+        font-size: 20px;
+        font-weight: bold;
+        line-height: 1;
+        margin-left: 15px;
+    }
+</style>
+
+</html>

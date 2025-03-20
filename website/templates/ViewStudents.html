@@ -1,0 +1,62 @@
+{% extends "LibrarianHome.html" %}
+
+{% block libcontent %}
+<div class="container" id="viewStudentsContent">
+    <h2>View Students</h2>
+
+    <!-- Search form -->
+    <form class="mb-3" method="GET" action="{{ url_for('lib.ViewStudentsDetails') }}">
+        <div class="input-group">
+            <input type="text" class="form-control" name="search" placeholder="Search by name or roll number" value="{{ search_query }}">
+            <button class="btn btn-primary" type="submit">Search</button>
+            <a href="{{ url_for('lib.ViewStudentsDetails') }}" class="btn btn-secondary">Show All</a>
+        </div>
+    </form>
+
+    <!-- Table to display students -->
+    <div class="table-responsive"> <!-- Make table responsive -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>S.no.</th>
+                    <th>Name</th>
+                    <th>Roll Number</th>
+                    <th>Email</th>
+                    <th>Phone Number</th> 
+                    <th>Department</th>
+                    <th>Year of Graduation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ student.Name }}</td>
+                    <td>{{ student.Roll_Number }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>{{ student.Phone_Number }}</td> 
+                    <td>{{ student.Department }}</td>
+                    <td>{{ student.year_of_graduation }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block Booksscripts %}
+<script>
+    // JavaScript to hide dashboard content and display viewBooksContent on page load
+    document.addEventListener("DOMContentLoaded", function() {
+        var dashboardContent = document.getElementById('dashboardcontent');
+        var addBooksContent = document.getElementById('viewStudentsContent');
+
+        if (dashboardContent && viewStudentsContent) {
+            dashboardContent.style.display = 'none';  // Hide dashboard content
+            addBooksContent.style.display = 'block';  // Display add books form
+        }
+    });
+</script>
+{% endblock %}

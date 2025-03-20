@@ -1,0 +1,75 @@
+{% extends "StudentHome.html" %}
+
+{% block stucontent %}
+<div class="container">
+    <h1 class="my-4">Checkout Books</h1>
+
+    <!-- Search form -->
+    <form method="GET" action="{{ url_for('stu.CheckoutBooks') }}">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Search by title, ISBN, or author" name="search_query" value="{{ search_query }}">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+        </div>
+    </form>
+
+    <!-- Checkout button (move to top) -->
+    <form id="checkoutForm" method="POST" action="{{ url_for('stu.CheckoutBooks') }}">
+        <!-- Hidden input to handle form submission -->
+        <input type="hidden" id="selectedBooks" name="selected_books">
+        <button type="button" class="btn btn-primary mb-4" onclick="prepareCheckout()">Checkout Selected Books</button>
+    </form> 
+
+    <!-- Book cards -->
+    <form id="bookListForm" method="POST" action="{{ url_for('stu.CheckoutBooks') }}">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for book in books %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ book.title }}</h5>
+                        <p class="card-text">Author: {{ book.author }}</p>
+                        <p class="card-text">ISBN: {{ book.isbn }}</p>
+                        <p class="card-text">Quantity: {{ book.quantity }}</p>
+
+                        <!-- Checkbox with associated label -->
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="book{{ book.id }}" name="book_ids" value="{{ book.id }}">
+                            <label class="form-check-label" for="book{{ book.id }}">Checkout "{{ book.title }}"</label>
+                        </div>
+
+                        <!-- Verification status -->
+                        {% if book.borrowed_books %}
+                            {% for borrowed_book in book.borrowed_books %}
+                                {% if borrowed_book.is_verified %}
+                                    <span class="badge bg-success">Successfully Checked Out</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Verification Pending</span>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Submit button -->
+        <button type="submit" style="display: none;"></button>
+    </form>
+</div>
+
+<script>
+    // Function to prepare checkout and submit form
+    function prepareCheckout() {
+        let selectedBooks = document.querySelectorAll('input[name="book_ids"]:checked');
+        if (selectedBooks.length === 0) {
+            alert('Please select at least one book to checkout.');
+        } else {
+            let selectedBooksArray = Array.from(selectedBooks).map(input => input.value);
+            document.getElementById('selectedBooks').value = JSON.stringify(selectedBooksArray);
+            document.getElementById('bookListForm').submit();
+        }
+    }
+</script>
+
+{% endblock %}

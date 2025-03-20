@@ -1,0 +1,47 @@
+{% extends "StudentHome.html" %}
+
+{% block stucontent %}
+<div class="container">
+    <h2>My Checked Out Books</h2>
+    <div class="row">
+        {% for borrowed_book in borrowed_books %}
+        <div class="col-md-6 mb-4">
+            <div class="card {% if borrowed_book.rejected_at %}bg-secondary text-white{% endif %}">
+                <div class="card-body">
+                    <!-- Verification status badge -->
+                    {% if borrowed_book.rejected_at %}
+                        <span class="badge bg-danger float-end">REJECTED</span>
+                    {% elif borrowed_book.is_verified %}
+                        <span class="badge bg-success float-end">Successfully Checked Out</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark float-end">Verification Pending</span>
+                    {% endif %}
+
+                    <h5 class="card-title">{{ borrowed_book.book.title }}</h5>
+                    <p class="card-text">Author: {{ borrowed_book.book.author }}</p>
+                    <p class="card-text">ISBN: {{ borrowed_book.book.isbn }}</p>
+                    <p class="card-text">Borrowed Date: {{ borrowed_book.borrowed_date.strftime('%d-%m-%Y') }}</p>
+                    <p class="card-text">Due Date: {{ borrowed_book.due_date.strftime('%d-%m-%Y') }}</p>
+
+                    <!-- Return Book Form -->
+                    {% if borrowed_book.is_verified %}
+                        <form action="{{ url_for('stu.MyBooks', borrowed_book_id=borrowed_book.id) }}" method="post" class="mb-2">
+                            <input type="hidden" name="return_book_id" value="{{ borrowed_book.id }}">
+                            <button type="submit" class="btn btn-primary">Return Book</button>
+                        </form>
+                    {% endif %}
+
+                    <!-- Renew Book Form -->
+                    {% if borrowed_book.is_verified %}
+                        <form action="{{ url_for('stu.MyBooks', borrowed_book_id=borrowed_book.id) }}" method="post">
+                            <input type="hidden" name="renew_book_id" value="{{ borrowed_book.id }}">
+                            <button type="submit" class="btn btn-success">Renew Book</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends "LibrarianHome.html" %}
+
+
+
+{% block libcontent %}
+<div class="container my-4" id="editStudentsContent">
+    <h2 class="mb-4">View and Edit Student Details</h2>
+    <form method="GET" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="search" placeholder="Search by name or roll number" value="{{ search_query }}">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="dept">
+                <option value="">All departments</option>
+                <option value="CSE" {% if dept_filter == 'CSE' %}selected{% endif %}>Computer Science and Engineering</option>
+                <option value="ECE" {% if dept_filter == 'ECE' %}selected{% endif %}>Electronics and Communication Engineering</option>
+                <option value="EEE" {% if dept_filter == 'EEE' %}selected{% endif %}>Electrical and Electronics Engineering</option>
+                <option value="IT" {% if dept_filter == 'IT' %}selected{% endif %}>Information Technology</option>
+                <option value="CIVIL" {% if dept_filter == 'CIVIL' %}selected{% endif %}>Civil Engineering</option>
+                <option value="MECH" {% if dept_filter == 'MECH' %}selected{% endif %}>Mechanical Engineering</option>
+                <option value="AUTO" {% if dept_filter == 'AUTO' %}selected{% endif %}>Automobile Engineering</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="sort">
+                <option value="">Sort by Year of Graduation</option>
+                <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+                <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+    </form>
+    <div class="row mb-4">
+        <div class="col-md-12 text-end">
+            <a href="{{ url_for('lib.EditStudentsDetails') }}" class="btn btn-secondary">Show All</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Roll Number</th>
+                    <th>Email</th>
+                    <th>Phone Number</th>
+                    <th>Department</th>
+                    <th>Year of Graduation</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.roll_number }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>{{ student.phone_number }}</td>
+                    <td>{{ student.department }}</td>
+                    <td>{{ student.year_of_graduation }}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ student.id }}">Edit</button>
+                        <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ student.id }}">Delete</button>
+                    </td>
+                </tr>
+
+                <!-- Edit Modal -->
+                <div class="modal fade" id="editModal{{ student.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ student.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ url_for('lib.EditStudentsDetails') }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editModalLabel{{ student.id }}">Edit Student</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" name="student_id" value="{{ student.id }}">
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Name</label>
+                                        <input type="text" class="form-control" name="name" value="{{ student.name }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="roll_number" class="form-label">Roll Number</label>
+                                        <input type="text" class="form-control" name="roll_number" value="{{ student.roll_number }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" name="email" value="{{ student.email }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="phone_number" class="form-label">Phone Number</label>
+                                        <input type="text" class="form-control" name="phone_number" value="{{ student.phone_number }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="department" class="form-label">Department</label>
+                                        <select class="form-select" name="department" required>
+                                            <option value="CSE" {% if student.department == 'CSE' %}selected{% endif %}>Computer Science and Engineering</option>
+                                            <option value="ECE" {% if student.department == 'ECE' %}selected{% endif %}>Electronics and Communication Engineering</option>
+                                            <option value="EEE" {% if student.department == 'EEE' %}selected{% endif %}>Electrical and Electronics Engineering</option>
+                                            <option value="IT" {% if student.department == 'IT' %}selected{% endif %}>Information Technology</option>
+                                            <option value="CIVIL" {% if student.department == 'CIVIL' %}selected{% endif %}>Civil Engineering</option>
+                                            <option value="MECH" {% if student.department == 'MECH' %}selected{% endif %}>Mechanical Engineering</option>
+                                            <option value="AUTO" {% if student.department == 'AUTO' %}selected{% endif %}>Automobile Engineering</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="current_year" class="form-label">Year of Graduation</label>
+                                        <input type="number" class="form-control" name="year_of_graduation" value="{{ student.year_of_graduation }}" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary" name="action" value="edit">Save changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteModal{{ student.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ student.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ url_for('lib.EditStudentsDetails') }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel{{ student.id }}">Delete Student</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" name="student_id" value="{{ student.id }}">
+                                    <p>Are you sure you want to delete student <strong>{{ student.name }}</strong>?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-danger" name="action" value="delete">Delete</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Pagination -->
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            {% if students.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ students.prev_num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if dept_filter %}&dept={{ dept_filter }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}">Previous</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+            {% endif %}
+
+            {% for page in students.iter_pages() %}
+            {% if page %}
+            {% if page == students.page %}
+            <li class="page-item active"><span class="page-link">{{ page }}</span></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ page }}{% if search_query %}&search={{ search_query }}{% endif %}{% if dept_filter %}&dept={{ dept_filter }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}">{{ page }}</a></li>
+            {% endif %}
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+
+            {% if students.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ students.next_num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if dept_filter %}&dept={{ dept_filter }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}">Next</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}
+
+{% block Booksscripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var dashboardContent = document.getElementById('dashboardcontent');
+        var addDonorContent = document.getElementById('editStudentsContent');
+
+        if (dashboardContent && editStudentsContent)  {         
+            dashboardContent.style.display = 'none';  // Hide dashboard content
+            addDonorContent.style.display = 'block';  // Display add student form
+        }
+    });
+
+</script>
+{% endblock %}

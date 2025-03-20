@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/login.css">
+    <title>LMS</title>
+    <link rel="icon" href="/static/img/LMS.png">
+</head>
+
+<body>
+<div  class="container active" id="container">
+{% with messages = get_flashed_messages(with_categories=true) %} 
+    {% if messages %} 
+      {% for category, message in messages %} 
+        {% if category =='error' %}
+            <div class="alert alert-danger alter-dismissable fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"> <span aria-hidden="true">&times;</span> </button>
+            </div>
+        {% else %}
+            <div class="alert alert-success alter-dismissable fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"> <span aria-hidden="true">&times;</span> </button>
+            </div>
+        {% endif %}
+       {% endfor %}
+    {% endif %} 
+{% endwith %}
+
+
+    <div class="container" id="container">
+        <div class="form-container sign-up">
+            <form method="POST">
+                <h1>Create Account</h1>
+
+
+                <input class="name" type="text" name="name" placeholder="name"  >
+                <input class="roll" type="name" name="roll_number" placeholder="roll number"  >
+                <input class="email" type="email" name="email" placeholder="Email"  >
+                <input class="pass" type="password"name="password" placeholder="Password"  >
+                <input class="pass" type="password"name="confirmpassword" placeholder=" Confirm Password"  >
+                <input class="phn" type="number" name="phone_number" placeholder="phone number"  >
+
+             
+                <div class="dep">
+                    <label class="dept2" for="dept">department:</label>
+                    <select id="dept2" name="department"  >
+                        <option value="ECE">ECE</option>
+                        <option value="CSE">CSE</option>
+                        <option value="EEE">EEE</option>
+                        <option value="IT">IT</option>
+                        <option value="AUTO">AUTO</option> 
+                        <option value="MECH">MECH</option>
+                        <option value="CIVIL">CIVIL</option>
+                    </select><br><br>
+                </div>
+
+                <div class="acad">
+                    <label class="year2" for="year_of_graduation">Year of Graduation:</label>
+                    <select class="year2" id="year_of_graduation" name="year_of_graduation" required >
+                        <option value="">Select Year</option>
+                    </select><br><br>
+
+                <h5>If You are a Librarian,<a style="color: #ff0000;" href="/librariansignup"> Click Here </a> </h5>
+                </div>
+<br><br>
+
+                <button type="submit" style="background-color: #ff0000;" id="subbtn">Sign Up</button> 
+
+
+
+            </form>
+        </div>
+        <div class="toggle-container">
+            <div class="toggle">
+
+                <div class="toggle-panel toggle-left">
+                    <h1>Been here before? Account holder?</h1>
+                    <p> Let's pick up where you left off. Sign in to continue your library exploration.</p>
+                    <a href="{{ url_for('auth.login') }}"><button class="hidden" id="login">Sign In</button> </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/js/signup.js"></script>
+</body>
+
+</html>
