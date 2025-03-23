@@ -11,6 +11,11 @@ views = Blueprint('views', __name__)
 def acc_created():
     return render_template('acc_created.html')
 
+@views.route('/zohoverify/verifyforzoho.html')
+def zohoverify():
+    return render_template('verifyforzoho.html')
+
+
 @views.route('/home')
 @views.route('/dashboard')
 @login_required
