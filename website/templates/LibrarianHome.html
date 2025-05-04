@@ -74,6 +74,12 @@
             Verify Student Accounts
         </a>
     </li>
+    <li class="sidebar-item">
+        <a href="{{ url_for('lib.password_reset_page') }}" id="dashboardLink" class="sidebar-link" aria-label="Checkout Management">
+            <i class="fa-solid fa-list pe-2"></i>
+            Reset Student Password
+        </a>
+    </li>
     {% endblock %}
     
     {% block content %}

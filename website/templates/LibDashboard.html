@@ -1,135 +1,292 @@
 {% extends "LibrarianHome.html" %}
 
 {% block Main %}
-<main class="content px-3 py-2" id="dashboardcontent">
+<main class="content px-4 py-5">
     <div class="container-fluid">
-        <div class="mb-3">
-            <h4>Librarian Dashboard</h4>
-        </div>
-        <div class="row">
+
+        <!-- Library Status (Top) -->
+        <div class="row mb-4 animate__animated animate__fadeInDown">
             <div class="col-12">
-                <div class="card flex-fill border-0 illustration shadow-sm">
-                    <div class="card-body d-flex flex-column flex-md-row p-3">
-                        <div class="d-flex flex-column justify-content-center">
-                            <h4 class="mb-2">Welcome Back, Miss. {{ current_user.name }}</h4>
-                            <p class="mb-0">Dashboard</p>
-                        </div>
-                        <div class="ms-auto d-flex align-items-end">
-                            <img {% block Image %}src="{{ url_for('static', filename='img/librarian.jpg') }}" alt="Librarian Image"{% endblock %} class="img-fluid illustration-img rounded-circle" style="max-width: 100px;">
-                        </div>
+                <div class="card shadow-lg border-0 rounded-2 p-2 d-flex flex-row justify-content-between align-items-center bg-gradient-stat">
+                    <h5 class="text-white mb-0 fs-3">Library Status: 
+                        <span class="badge {{ 'bg-success' if library_status else 'bg-danger' }} fs-4">
+                            {{ 'Open' if library_status else 'Closed' }}
+                        </span>
+                    </h5>
+                    <form method="POST" action="{{ url_for('views.toggle_library_status') }}">
+                        <input type="hidden" name="status" value="{{ 0 if library_status else 1 }}">
+                        <button type="submit" class="btn {{ 'btn-danger' if library_status else 'btn-success' }} btn-lg shadow-lg rounded-pill px-1 py-1">
+                            Set as {{ 'Closed' if library_status else 'Open' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 animate__animated animate__fadeInDown">
+            <div>
+                <h2 class="fw-bold text-gradient text-primary">Hello, Miss. {{ current_user.name }}</h2>
+                <p class="text-muted">Welcome back to your modern library dashboard!</p>
+            </div>
+            <img src="{{ url_for('static', filename='img/librarian.jpg') }}" alt="Librarian" class="rounded-circle shadow" style="max-width: 90px;">
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="row mb-4 animate__animated animate__fadeInUp">
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="card shadow-lg border-0 rounded-4 p-4 bg-gradient-stat">
+                    <div class="card-body">
+                        <h5 class="card-title text-white">Total Books</h5>
+                        <p class="fs-4 text-white">{{ total_available_books }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="card shadow-lg border-0 rounded-4 p-4 bg-gradient-stat">
+                    <div class="card-body">
+                        <h5 class="card-title text-white">Total Volunteers</h5>
+                        <p class="fs-4 text-white">{{ total_volunteers }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="card shadow-lg border-0 rounded-4 p-4 bg-gradient-stat">
+                    <div class="card-body">
+                        <h5 class="card-title text-white">Overdue Books</h5>
+                        <p class="fs-4 text-white">{{ total_overdue_books }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="card shadow-lg border-0 rounded-4 p-4 bg-gradient-stat">
+                    <div class="card-body">
+                        <h5 class="card-title text-white">Verified Users</h5>
+                        <p class="fs-4 text-white">{{ total_verified_users }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- DASHBOARD CONTENT -->
-        <div class="row mt-4">
-            <!-- Total Books Widget -->
-            <div class="col-sm-6 col-md-3 mb-3">
-                <div class="card text-white bg-primary shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Books</h5>
-                        <p class="card-text display-6">{{ total_available_books }}</p>
-                    </div>
+        <!-- Today’s Volunteers -->
+        <div class="card shadow-lg mb-4 animate__animated animate__fadeInUp">
+            <div class="card-body d-flex justify-content-between flex-column flex-md-row align-items-md-center gap-3">
+                <div>
+                    <h5 class="card-title mb-2">Today's In-Charge Volunteers ({{ today }})</h5>
+                    {% set today_assignment = weekly_assignment[today] if today in weekly_assignment else None %}
+                    {% if today_assignment %}
+                        <p class="mb-1"><strong>Volunteer 1:</strong> {{ today_assignment.volunteer1.name }} ({{ today_assignment.volunteer1.department }})</p>
+                        <p class="mb-0"><strong>Volunteer 2:</strong> {{ today_assignment.volunteer2.name }} ({{ today_assignment.volunteer2.department }})</p>
+                    {% else %}
+                        <p class="text-muted">No volunteers assigned for today.</p>
+                    {% endif %}
                 </div>
+                <button class="btn btn-primary rounded-pill px-4 py-2" data-bs-toggle="modal" data-bs-target="#editVolunteerModal">
+                    Edit Weekly Assignment
+                </button>
             </div>
+        </div>
 
-            <!-- Books Checked Out Widget -->
-            <div class="col-sm-6 col-md-3 mb-3">
-                <div class="card text-white bg-success shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Books Checked Out</h5>
-                        <p class="card-text display-6">{{ total_checked_out_books }}</p>
-                    </div>
-                </div>
-            </div>
+        <!-- New Volunteer Assignment Modal -->
+        <div class="modal fade" id="editVolunteerModal" tabindex="-1" aria-labelledby="editVolunteerModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content rounded-4 shadow-lg">
+                    <form method="POST" action="{{ url_for('views.assign_weekly_volunteers') }}">
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title fw-bold text-primary" id="editVolunteerModalLabel">
+                                Assign Volunteers to a Day
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body py-4">
+                            <div class="mb-3">
+                                <label for="daySelector" class="form-label fw-semibold">Select Day</label>
+                                <select id="daySelector" name="selected_day" class="form-select shadow-sm" required>
+                                    <option value="" disabled selected>Select a day</option>
+                                    {% for day in weekdays %}
+                                        <option value="{{ day }}">{{ day }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div><!-- Department Filter in the Modal -->
+                            <select name="department" id="department" class="form-control mb-3">
+                                <option value="">Select Department</option>
+                                {% for dept in departments %}
+                                    <option value="{{ dept }}" {% if dept == selected_department %}selected{% endif %}>{{ dept }}</option>
+                                {% endfor %}
+                            </select>
+                            
 
-            <!-- Books Overdue Widget -->
-            <div class="col-sm-6 col-md-3 mb-3">
-                <div class="card text-white bg-danger shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Books Overdue</h5>
-                        <p class="card-text display-6">{{ overdue_books_count }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Students Overview Widget -->
-            <div class="col-sm-6 col-md-3 mb-3">
-                <div class="card text-white bg-info shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Students Overview</h5>
-                        <div class="row text-center">
-                            <div class="col-4">
-                                <i class="fas fa-users fa-2x"></i>
-                                <p class="card-text">Total</p>
-                                <p class="card-text display-6">{{ total_students }}</p>
-                            </div>
-                            <div class="col-4">
-                                <i class="fas fa-user-check fa-2x"></i>
-                                <p class="card-text">Verified</p>
-                                <p class="card-text display-6">{{ verified_students }}</p>
-                            </div>
-                            <div class="col-4">
-                                <i class="fas fa-user-clock fa-2x"></i>
-                                <p class="card-text">Pending</p>
-                                <p class="card-text display-6">{{ pending_verifications }}</p>
+                            <div id="volunteerSelection" class="d-none">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="volunteer1" class="form-label fw-semibold">Volunteer 1</label>
+                                        <select name="volunteer1_id" id="volunteer1" class="form-select shadow-sm" required>
+                                            <option value="" disabled selected>Select Volunteer 1</option>
+                                            {% for volunteer in volunteers %}
+                                                <option value="{{ volunteer.id }}">{{ volunteer.name }} ({{ volunteer.department }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="volunteer2" class="form-label fw-semibold">Volunteer 2</label>
+                                        <select name="volunteer2_id" id="volunteer2" class="form-select shadow-sm" required>
+                                            <option value="" disabled selected>Select Volunteer 2</option>
+                                            {% for volunteer in volunteers %}
+                                                <option value="{{ volunteer.id }}">{{ volunteer.name }} ({{ volunteer.department }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                        <div class="modal-footer border-0 d-flex justify-content-between align-items-center">
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill shadow-sm">Save Assignment</button>
+                            <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <!-- Volunteers Widget -->
-        <div class="row">
-            <div class="col-md-3 mb-3">
-                <div class="card text-white bg-secondary shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Volunteers</h5>
-                        <p class="card-text display-6">{{ total_volunteers }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <script>
+            document.getElementById("daySelector").addEventListener("change", function () {
+                document.getElementById("volunteerSelection").classList.remove("d-none");
+            });
+        </script>
 
-        <!-- Card with Table for Borrowed Books -->
-        <div class="card mt-4 shadow-sm">
+        <!-- Checkout Register -->
+        <div class="card shadow-lg mb-4 animate__animated animate__fadeInUp">
             <div class="card-body">
-                <h5 class="card-title">Borrowed Books</h5>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 gap-3">
+                    <h5 class="mb-0">Checkout Register</h5>
+                    <a href="{{ url_for('views.export_checkout_register_excel') }}" class="btn btn-outline-success shadow-sm">
+                        <i class="fas fa-file-excel me-1"></i> Export to Excel
+                    </a>
+                </div>
+
+                <!-- Search Filter -->
+                <form method="GET" class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <select name="department" class="form-select shadow-sm" onchange="this.form.submit()">
+                            <option value="">All Departments</option>
+                            {% for dept in departments %}
+                                <option value="{{ dept }}" {% if selected_department == dept %}selected{% endif %}>
+                                    {{ dept }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select name="sort" class="form-select shadow-sm" onchange="this.form.submit()">
+                            <option value="">Sort By</option>
+                            <option value="due_asc" {% if selected_sort == 'due_asc' %}selected{% endif %}>
+                                Nearest Due Date
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" id="searchInput" class="form-control shadow-sm" placeholder="Search student or book">
+                    </div>
+                </form>
+
+                <!-- Table -->
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover d-none d-md-table">
-                        <thead class="thead-dark">
+                    <table id="checkoutTable" class="table table-bordered table-hover table-striped align-middle text-nowrap shadow-sm rounded-3">
+                        <thead class="table-dark">
                             <tr>
-                                <th>Book Title</th>
-                                <th>Student Name</th>
-                                <th>Due Date</th>
+                                <th>Student</th>
+                                <th>Roll No.</th>
+                                <th>Department</th>
+                                <th>Book</th>
+                                <th>Borrowed</th>
+                                <th>Due</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for borrowed_book in borrowed_books %}
-                            <tr>
-                                <td>{{ borrowed_book.book.title }}</td>
-                                <td>{{ borrowed_book.student.name }}</td>
-                                <td>{{ borrowed_book.due_date.strftime('%d-%m-%Y') }}</td>
+                            {% for entry in borrowed_books %}
+                            <tr class="hoverable">
+                                <td>{{ entry.student.name }}</td>
+                                <td>{{ entry.student.roll_number }}</td>
+                                <td>{{ entry.student.department }}</td>
+                                <td>{{ entry.book.title }}</td>
+                                <td>{{ entry.borrowed_date.strftime('%d-%m-%Y') }}</td>
+                                <td>{{ entry.due_date.strftime('%d-%m-%Y') }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
-                    <div class="d-md-none">
-                        {% for borrowed_book in borrowed_books %}
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ borrowed_book.book.title }}</h5>
-                                <p class="card-text"><strong>Student:</strong> {{ borrowed_book.student.name }}</p>
-                                <p class="card-text"><strong>Due Date:</strong> {{ borrowed_book.due_date.strftime('%d-%m-%Y') }}</p>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
                 </div>
             </div>
         </div>
+
     </div>
 </main>
+
+<!-- Live Search -->
+<script>
+    document.getElementById('searchInput').addEventListener('keyup', function () {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll("#checkoutTable tbody tr");
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(filter) ? '' : 'none';
+        });
+    });
+</script>
+
 {% endblock %}
+
+<!-- Custom Styles -->
+<style>
+    .text-gradient {
+        background: linear-gradient(90deg, rgba(85, 183, 255, 1) 0%, rgba(0, 204, 255, 1) 100%);
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .bg-gradient-stat {
+        background: linear-gradient(145deg, #6a5acd, #836fff);
+        color: white;
+    }
+
+    .accordion-button {
+        transition: background-color 0.3s ease;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: #f8f9fa !important;
+    }
+
+    .btn {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.1);
+        cursor: pointer;
+    }
+
+    .hoverable:hover {
+        background-color: #f1f1f1;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 767px) {
+        .table th, .table td {
+            padding: 0.6rem;
+            font-size: 0.9rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .col-md-3.col-sm-6.mb-4 {
+            width: 100%;
+        }
+    }
+</style>

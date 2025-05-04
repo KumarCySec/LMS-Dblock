@@ -4,9 +4,11 @@ from os import path
 import os
 from flask_login import LoginManager
 from datetime import timedelta
+from flask_migrate import Migrate
 
 db = SQLAlchemy()
 DB_NAME = "Kishorebase.db"
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
@@ -19,6 +21,7 @@ def create_app():
     app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2 MB limit
 
     db.init_app(app)
+    migrate.init_app(app, db)
 
     from .veiws import views
     from .auth import auth

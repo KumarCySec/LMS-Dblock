@@ -1,11 +1,14 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_login import login_required
-from sqlalchemy import or_
-from datetime import datetime, timedelta
-from .models import Book, User, Donor,BorrowedBook
+from flask_login import login_required, current_user
+from sqlalchemy import or_, distinct
+from datetime import datetime, timedelta,date
+from .models import Book, User, Donor,BorrowedBook, VolunteerAssignment
 from . import db
+from werkzeug.security import generate_password_hash, check_password_hash
+import logging
 from .forms import CSRFProtectForm
 
+logger = logging.getLogger(__name__)
 lib = Blueprint('lib', __name__)
 
 @lib.route('/addbooks', methods=['GET', 'POST'])
@@ -448,3 +451,122 @@ def direct_checkout():
         print(f"Error in direct_checkout: {str(e)}")
         flash('An error occurred. Please try again later.', 'danger')
         return redirect(url_for('lib.index'))  # Redirect to appropriate error page or handle as needed
+
+# ────────────────────────────────────────────────────────────────
+# Route: GET + POST → Volunteer Password Reset Page
+# Shows list of users (students + co-volunteers) and handles reset
+# ────────────────────────────────────────────────────────────────
+@lib.route("/reset-password", methods=["GET", "POST"])
+@login_required
+def password_reset_page():
+    try:
+        # ✅ Restrict access to volunteers only
+        if current_user.role.lower() != "volunteer":
+            flash("Unauthorized access.", "danger")
+            logger.warning(f"[SECURITY] Unauthorized access attempt by {current_user.email}")
+            return redirect(url_for("views.home"))
+
+        # ───── Handle password reset POST ─────
+        if request.method == "POST":
+            form_type = request.form.get("form_type", "").strip()
+            target_id = request.form.get("student_id")  # Works for both student or volunteer
+            new_password = request.form.get("new_password", "").strip()
+
+            logger.debug(f"[DEBUG] Password reset submitted: target_id={target_id}, pwd_len={len(new_password) if new_password else 'empty'}")
+
+            if form_type != "volunteer_password_reset":
+                flash("Invalid form submission.", "danger")
+                logger.warning("[WARNING] Invalid form_type submitted.")
+                return redirect(url_for("lib.password_reset_page"))
+
+            if not target_id:
+                flash("Missing user ID.", "warning")
+                return redirect(url_for("lib.password_reset_page"))
+
+            # ✅ Fetch target user (must be Student or Volunteer, not others)
+            target_user = User.query.filter(User.id == target_id, User.role.in_(["Student", "Volunteer"])).first()
+
+            if not target_user:
+                flash("User not found or invalid role.", "danger")
+                logger.warning(f"[ERROR] No valid user for reset found for ID: {target_id}")
+                return redirect(url_for("lib.password_reset_page"))
+
+            # ✅ Default password fallback
+            if not new_password:
+                new_password = "Student@123"
+                logger.info(f"[INFO] Default password used for {target_user.email} by {current_user.email}")
+
+            # ✅ Validate password strength
+            if len(new_password) < 8:
+                flash("Password must be at least 8 characters.", "warning")
+                logger.warning(f"[WARNING] Weak password attempted by {current_user.email} for {target_user.email}")
+                return redirect(url_for("lib.password_reset_page"))
+
+            # ✅ Hash and update password
+            target_user.password = generate_password_hash(new_password, method='pbkdf2:sha256')
+            db.session.commit()
+
+            flash(f"Password reset successfully for {target_user.name}.", "success")
+            logger.info(f"[SUCCESS] {current_user.email} reset password for {target_user.role.lower()} {target_user.email}")
+            return redirect(url_for("lib.password_reset_page"))
+
+    except Exception as e:
+        logger.exception("[ERROR] Password reset process failed.")
+        flash("Something went wrong. Please try again later.", "danger")
+
+    # ───── Handle GET Request: Load eligible users ─────
+    students = User.query.filter_by(role="Student").all()
+    co_volunteers = User.query.filter_by(role="Volunteer").filter(User.id != current_user.id).all()
+
+    return render_template("ResetStudentPassword.html", students=students, co_volunteers=co_volunteers)
+
+
+
+# ────────────────────────────────────────────────────────────────
+# Route: POST → Volunteer Resets Student Password
+# Handles both default and custom password updates
+# ────────────────────────────────────────────────────────────────
+@lib.route('/reset-password', methods=['POST'])
+@login_required
+def reset_student_password():
+    if current_user.role != "Volunteer":
+        flash("Unauthorized access.", "danger")
+        logger.warning(f"[SECURITY] Unauthorized password reset attempt by {current_user.email}")
+        return redirect(url_for('views.home'))
+
+    try:
+        student_id = request.form.get('student_id')
+        new_password = request.form.get('new_password', '').strip()
+
+        # Validate student existence
+        student = User.query.get(student_id)
+        if not student or student.role != "Student":
+            flash("Student not found.", "danger")
+            logger.warning(f"[DEBUG] No valid student found for ID: {student_id}")
+            return redirect(url_for('lib.password_reset_page'))
+
+        # Use default password if custom one is blank
+        if not new_password:
+            new_password = "Student@123"
+            logger.info(f"[INFO] Default password set for {student.email} by {current_user.email}")
+
+        # Enforce minimum length
+        if len(new_password) < 8:
+            flash("Password must be at least 8 characters.", "warning")
+            logger.warning(f"[WARNING] Weak password attempted by {current_user.email}")
+            return redirect(url_for('lib.password_reset_page'))
+
+        # Hash and update password
+        hashed_pwd = generate_password_hash(new_password, method='pbkdf2:sha256')
+        student.password = hashed_pwd
+        db.session.commit()
+
+        flash(f"Password for {student.name} has been updated.", "success")
+        logger.info(f"[SUCCESS] {current_user.email} reset password for student {student.email}")
+        return redirect(url_for('lib.password_reset_page'))
+
+    except Exception as e:
+        logger.exception("[ERROR] Student password reset failed.")
+        flash("Something went wrong. Please try again later.", "danger")
+        return redirect(url_for('lib.password_reset_page'))
+

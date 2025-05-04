@@ -3,119 +3,138 @@
 {% block Main %}
 <main class="content px-3 py-2" id="dashboardcontent">
     <div class="container-fluid">
-        <div class="mb-3">
-            <h4>Student Dashboard</h4>
+
+        <!-- Title -->
+        <div class="mb-4 text-center text-md-start">
+            <h2 class="fw-bold">🎓 Student Dashboard</h2>
         </div>
-        <div class="row">
-            <!-- Welcome Card (Full Width on Mobile) -->
+
+        <!-- Welcome Card -->
+        <div class="row mb-4">
             <div class="col-12">
-                <div class="card flex-fill border-0 illustration shadow-sm">
-                    <div class="card-body p-0 d-flex flex-fill">
-                        <div class="row g-0 w-100">
-                            <div class="col-6">
-                                <div class="p-3 m-1">
-                                    <h4>Welcome Back, Miss. {{ current_user.name }}</h4>
-                                    <p class="mb-0">Dashboard</p>
-                                </div>
-                            </div>
-                            <div class="col-6 align-self-end text-end">
-                                <img {% block Image %}src="{{ url_for('static', filename='img/student.jpeg') }}" alt="Student Image"{% endblock %} class="img-fluid illustration-img rounded-circle" style="max-width: 100px;">
-                            </div>
+                <div class="card border-0 shadow-lg rounded-4 p-3 bg-glass animate__animated animate__fadeIn">
+                    <div class="d-flex align-items-center justify-content-between flex-column flex-md-row">
+                        <div class="text-center text-md-start">
+                            <h4 class="fw-semibold">Welcome Back, <span class="text-primary">{{ current_user.name }}</span></h4>
+                            <p class="mb-0 text-muted">Explore your books and due dates below</p>
                         </div>
+                        <img src="{{ url_for('static', filename='img/student.jpeg') }}"
+                             alt="Student Image"
+                             class="rounded-circle img-fluid mt-3 mt-md-0"
+                             style="width: 100px; height: 100px; object-fit: cover;">
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row mt-4">
-            <!-- Next Due Date Card -->
-            <div class="col-12 col-md-6 mb-3">
-                <div class="card border-0 card-next-due shadow-sm">
-                    <div class="card-body py-4">
-                        <h5 class="card-title text-primary">Next Due Date</h5>
-                        {% if nearest_due_book %}
-                        <p class="mb-2"> Book Title: {{ nearest_due_book.book.title }}</p>
-                        <p class="text-muted">Due: {{ nearest_due_book.due_date.strftime('%Y-%m-%d') }}</p>
-                        {% else %}
+        <!-- 🔴 Library Status + 👥 Today's Volunteers -->
+        <div class="row gy-4 mb-4">
+            <!-- Library Status -->
+            <div class="col-12 col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-glass text-center h-100">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-university me-2 text-primary"></i>Library Status</h5>
+                    {% if library_status %}
+                        <span class="badge bg-success fs-5 py-2 px-4 rounded-pill"><i class="fas fa-door-open me-2"></i>Open Now</span>
+                    {% else %}
+                        <span class="badge bg-danger fs-5 py-2 px-4 rounded-pill"><i class="fas fa-door-closed me-2"></i>Currently Closed</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Today's Volunteers -->
+            <div class="col-12 col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-glass h-100">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-user-friends me-2 text-secondary"></i>Today's Volunteers</h5>
+                    {% if today_volunteers %}
+                        {% for v in today_volunteers %}
+                        <p class="mb-2">
+                            <i class="fas fa-user-circle me-2 text-info"></i>
+                            <strong>{{ v.name }}</strong> — <span class="text-muted">{{ v.department }}</span>
+                        </p>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No volunteers assigned for today.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards: Due Date & Checked Out -->
+        <div class="row gy-4">
+            <div class="col-12 col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-glass h-100">
+                    <h5 class="text-primary fw-bold mb-3"><i class="fas fa-calendar-alt me-2"></i>Next Due Date</h5>
+                    {% if nearest_due_book %}
+                        <p class="mb-2">📘 <strong>Book:</strong> {{ nearest_due_book.book.title }}</p>
+                        <p class="text-muted">🕓 <strong>Due:</strong> {{ nearest_due_book.due_date.strftime('%Y-%m-%d') }}</p>
+                    {% else %}
                         <p class="text-muted">No books currently borrowed.</p>
-                        {% endif %}
-                    </div>
+                    {% endif %}
                 </div>
             </div>
 
-            <!-- Checked Out Books Card -->
-            <div class="col-12 col-md-6 mb-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body py-4">
-                        <h5 class="card-title">Checked Out Books</h5>
-                        <table class="table">
-                            <tbody>
-                                <tr>
-                                    <th scope="row" class="text-primary">Total Checked Out Books</th>
-                                    <td><span class="display-4">{{ total_checked_out_books }}</span></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="text-primary">Days Until Next Due</th>
-                                    {% if days_until_next_due is not none %}
-                                    <td><span class="display-4">{{ days_until_next_due }}</span></td>
-                                    {% else %}
-                                    <td><span class="display-4">N/A</span></td>
-                                    {% endif %}
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="col-12 col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-glass h-100">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-book-reader me-2"></i>Checked Out Books</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><strong>Total:</strong> <span class="badge bg-primary fs-5">{{ total_checked_out_books }}</span></li>
+                        <li><strong>Days Until Next Due:</strong> 
+                            <span class="badge bg-warning text-dark fs-5">
+                                {% if days_until_next_due is not none %}
+                                    {{ days_until_next_due }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <!-- New Arrivals Card -->
-        <div class="row">
+        <!-- New Arrivals -->
+        <div class="row mt-5">
             <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body py-4">
-                        <h5 class="card-title">New Arrivals</h5>
-                        <div class="row">
-                            {% for book in new_arrivals %}
-                            <div class="col-6 col-md-3 mb-3">
-                                <div class="card">
-                                    <!-- <img src="{{ book.image }}" class="card-img-top" alt="{{ book.title }}"> -->
-                                    <div class="card-body">
-                                        <h6 class="card-title">{{ book.title }}</h6>
-                                        <p class="card-text">{{ book.author }}</p>
-                                    </div>
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-glass">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-star me-2 text-success"></i>New Arrivals</h5>
+                    <div class="row g-3">
+                        {% for book in new_arrivals %}
+                        <div class="col-6 col-md-3">
+                            <div class="card rounded-3 h-100 shadow-sm border-0">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-truncate">{{ book.title }}</h6>
+                                    <p class="text-muted small">{{ book.author }}</p>
                                 </div>
                             </div>
-                            {% endfor %}
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Popular Books Card -->
-        <div class="row">
+        <!-- Popular Books -->
+        <div class="row mt-4">
             <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body py-4">
-                        <h5 class="card-title">Popular Books</h5>
-                        <div class="row">
-                            {% for book in popular_books %}
-                            <div class="col-6 col-md-3 mb-3">
-                                <div class="card">
-                                    <img src="{{ book.image }}" class="card-img-top" alt="{{ book.title }}">
-                                    <div class="card-body">
-                                        <h6 class="card-title">{{ book.title }}</h6>
-                                        <p class="card-text">{{ book.author }}</p>
-                                    </div>
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-glass">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-fire me-2 text-danger"></i>Popular Books</h5>
+                    <div class="row g-3">
+                        {% for book in popular_books %}
+                        <div class="col-6 col-md-3">
+                            <div class="card rounded-3 h-100 shadow-sm border-0">
+                                <img src="{{ book.image }}" class="card-img-top rounded-top" alt="{{ book.title }}" style="height: 150px; object-fit: cover;">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-truncate">{{ book.title }}</h6>
+                                    <p class="text-muted small">{{ book.author }}</p>
                                 </div>
                             </div>
-                            {% endfor %}
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 </main>
 {% endblock %}

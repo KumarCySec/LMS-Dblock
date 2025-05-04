@@ -2,11 +2,15 @@ from flask import Blueprint,render_template,request,session, url_for, redirect,f
 from flask_login import login_required,current_user
 from .models import Book,BorrowedBook,User
 from datetime import datetime,timedelta,timezone
+from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 from sqlalchemy import or_
 import os
+import logging
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
+
+logger = logging.getLogger(__name__)
 
 stu = Blueprint('stu', __name__)
 
@@ -123,43 +127,88 @@ def MyBooks():
 
     return render_template('MyBooks.html', borrowed_books=borrowed_books)
 
-
 @stu.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     user = User.query.get(current_user.id)
-    
+
+    if not user:
+        flash("User not found. Please login again.", "danger")
+        return redirect(url_for('auth.logout'))
+
     if request.method == 'POST':
-        # Update user details
-        user.name = request.form.get('name')
-        user.roll_number = request.form.get('roll_number')
-        user.phone_number = request.form.get('phone_number')
-        user.department = request.form.get('department')
-        user.year_of_graduation = request.form.get('year_of_graduation')
+        form_type = request.form.get('form_type')
 
-        # Handle profile picture
-        if 'profile_picture' in request.files:
-            file = request.files['profile_picture']
-            if file and allowed_file(file.filename):
-                try:
-                    filename = secure_filename(file.filename)
-                    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-                    file.save(file_path)
-                    user.profile_picture_url = url_for('static', filename=f'uploads/pfp/{filename}')
-                except RequestEntityTooLarge:
-                    flash('File is too large. Maximum size is 2 MB.', 'error')
-                    return redirect(request.url)
-                except Exception as e:
-                    flash(f'An error occurred: {str(e)}', 'error')
-                    return redirect(request.url)
+        try:
+            # ----------------------------
+            # 🔄 PROFILE DETAILS UPDATE
+            # ----------------------------
+            if form_type == 'profile_update':
+                name = request.form.get('name', '').strip()
+                phone = request.form.get('phone', '').strip()
+                department = request.form.get('department', '').strip()
+                year = request.form.get('year_of_graduation', '').strip()
+
+                # Basic validation
+                if not name:
+                    flash("Name cannot be empty.", "warning")
+                    return redirect(url_for('stu.profile'))
+
+                if year and not year.isdigit():
+                    flash("Graduation year must be a number.", "warning")
+                    return redirect(url_for('stu.profile'))
+
+                # Update fields
+                user.name = name
+                user.phone_number = phone
+                user.department = department
+                user.year_of_graduation = int(year) if year else None
+
+                db.session.commit()
+
+                logger.info(f"[INFO] User '{user.email}' updated profile.")
+                flash("Profile updated successfully!", "success")
+                return redirect(url_for('stu.profile'))
+
+            # ----------------------------
+            # 🔐 PASSWORD RESET
+            # ----------------------------
+            elif form_type == 'password_reset':
+                current_pwd = request.form.get('current_password')
+                new_pwd = request.form.get('new_password')
+                confirm_pwd = request.form.get('confirm_password')
+
+                # Check current password
+                if not check_password_hash(user.password, current_pwd):
+                    flash("Current password is incorrect.", "danger")
+                    return redirect(url_for('stu.profile'))
+
+                # Validate new passwords
+                if new_pwd != confirm_pwd:
+                    flash("New passwords do not match.", "warning")
+                    return redirect(url_for('stu.profile'))
+
+                if len(new_pwd) < 6:
+                    flash("New password must be at least 6 characters.", "warning")
+                    return redirect(url_for('stu.profile'))
+
+                # Hash and save new password
+                user.password = generate_password_hash(new_pwd, method='pbkdf2:sha256')
+                db.session.commit()
+
+                logger.info(f"[INFO] User '{user.email}' successfully reset their password.")
+                flash("Password updated successfully!", "success")
+                return redirect(url_for('stu.profile'))
+
             else:
-                flash('Invalid file type. Only jpg, jpeg, and png files are allowed.', 'error')
+                logger.warning(f"[WARNING] Unknown form type submitted by {user.email}: {form_type}")
+                flash("Invalid form submitted.", "danger")
+                return redirect(url_for('stu.profile'))
 
-        db.session.commit()
-        flash('Profile updated successfully!', 'success')
-        return redirect(url_for('stu.profile'))
+        except Exception as e:
+            logger.exception(f"[ERROR] Failed to process profile update for {user.email}: {str(e)}")
+            flash("Something went wrong. Please try again later.", "danger")
+            return redirect(url_for('stu.profile'))
 
-    return render_template('Profile.html', user=user)
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'}
+    # GET request — show profile page
+    return render_template("Profile.html", user=user)

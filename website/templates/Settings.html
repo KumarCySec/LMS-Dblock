@@ -1,63 +1,55 @@
-{% extends 'BaseFormat.html' %}
-{% block content %}
-<div class="container mt-5">
-    <h2 class="text-center">Settings</h2>
-    <form method="post">
-        <!-- Theme Toggle -->
+{% if current_user.role == 'Student' %}
+    {% extends "StudentHome.html" %}
+{% else %}
+    {% extends "LibrarianHome.html" %}
+{% endif %}
+
+{% block Main %}
+<main class="content px-3 py-4" id="settings-content">
+    <div class="container-fluid">
         <div class="mb-4">
-            <label for="themeToggle" class="form-label">Theme</label>
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="themeToggle" name="theme" >
-                <label class="form-check-label" for="themeToggle">Dark Mode</label>
+            <h3 class="fw-bold text-primary">Settings</h3>
+            <p class="text-muted">Customize your experience</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8">
+                <div class="card shadow-lg border-0 rounded-4 p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 text-secondary fw-semibold">Theme Preference</h5>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="themeSwitch" onchange="toggleTheme()" />
+                            <label class="form-check-label" for="themeSwitch" id="themeSwitchLabel">Dark Mode</label>
+                        </div>
+                    </div>
+                    <p class="text-muted small">Toggle between Light and Dark modes to suit your environment.</p>
+                </div>
             </div>
         </div>
-        
-        <!-- Email Notifications Toggle -->
-        <div class="mb-4">
-            <label for="emailNotifications" class="form-label">Email Notifications</label>
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="emailNotifications" name="email_notifications">
-                <label class="form-check-label" for="emailNotifications">Enabled</label>
-            </div>
-        </div>
+    </div>
+</main>
 
-        <!-- Language Selection -->
-        <div class="mb-4">
-            <label for="language" class="form-label">Language</label>
-            <select class="form-select" id="language" name="language">
-                <option value="english" >English</option>
+<script>
+    // On page load, sync toggle with current theme
+    document.addEventListener("DOMContentLoaded", function () {
+        const theme = localStorage.getItem("theme") || "light";
+        document.documentElement.setAttribute("data-bs-theme", theme);
+        const toggle = document.getElementById("themeSwitch");
+        const label = document.getElementById("themeSwitchLabel");
 
-            </select>
-        </div>
+        toggle.checked = theme === "dark";
+        label.textContent = theme === "dark" ? "Dark Mode" : "Light Mode";
+    });
 
-        <!-- Profile Visibility -->
-        <!-- <div class="mb-4">
-            <label for="profileVisibility" class="form-label">Profile Visibility</label>
-            <select class="form-select" id="profileVisibility" name="profile_visibility">
-                <option value="public" >Public</option>
-                <option value="private">Private</option>
-            </select>
-        </div> -->
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute("data-bs-theme");
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
 
-        <!-- Change Password -->
-        <div class="mb-4">
-            <label for="changePassword" class="form-label">Change Password</label>
-            <input type="password" class="form-control" id="oldPassword" name="old_password" placeholder="Old Password">
+        document.documentElement.setAttribute("data-bs-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
 
-            <input type="password" class="form-control" id="oldPassword" name="old_password" placeholder="Confirm Old Password">
-            <input type="password" class="form-control mt-2" id="newPassword" name="new_password" placeholder="New Password">
-        </div>
-        
-        <!-- Forgot Password -->
-        <div class="mb-4">
-            <label class="form-label">Forgot Password</label>
-            <div>
-                <a href="#" class="btn btn-link">Reset Password</a>
-            </div>
-        </div>
-        
-        <!-- Save Changes Button -->
-        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
-    </form>
-</div>
+        const label = document.getElementById("themeSwitchLabel");
+        label.textContent = newTheme === "dark" ? "Dark Mode" : "Light Mode";
+    } 
+</script>
 {% endblock %}

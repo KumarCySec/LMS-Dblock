@@ -87,3 +87,35 @@ class Donor(db.Model):
 
     def __repr__(self):
         return f"<Donor(name='{self.name}', department='{self.department}', year_of_graduation={self.year_of_graduation})>"
+
+class VolunteerAssignment(db.Model):
+    __tablename__ = 'volunteer_assignment'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    day = db.Column(db.String(10), nullable=False)  # e.g., "Monday", "Tuesday"
+
+    volunteer1_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    volunteer2_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    volunteer1 = db.relationship('User', foreign_keys=[volunteer1_id])
+    volunteer2 = db.relationship('User', foreign_keys=[volunteer2_id])
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('day', name='uq_volunteer_assignment_day'),
+    )
+
+    def __repr__(self):
+        return f"<VolunteerAssignment(day={self.day}, volunteer1={self.volunteer1.name}, volunteer2={self.volunteer2.name})>"
+
+class LibraryStatus(db.Model):
+    __tablename__ = 'library_status'
+
+    id = db.Column(db.Integer, primary_key=True)
+    is_open = db.Column(db.Boolean, default=True)  # True for Open, False for Closed
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<LibraryStatus(id={self.id}, is_open={self.is_open}, updated_at={self.updated_at})>"
