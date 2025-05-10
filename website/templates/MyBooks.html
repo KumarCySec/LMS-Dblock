@@ -6,7 +6,7 @@
     <div class="row">
         {% for borrowed_book in borrowed_books %}
         <div class="col-md-6 mb-4">
-            <div class="card {% if borrowed_book.rejected_at %}bg-secondary text-white{% endif %}">
+            <div class="card {% if borrowed_book.rejected_at %}bg-secondary text-body{% endif %}">
                 <div class="card-body">
                     <!-- Verification status badge -->
                     {% if borrowed_book.rejected_at %}
