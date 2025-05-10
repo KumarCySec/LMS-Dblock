@@ -181,16 +181,28 @@ def EditStudentsDetails():
     per_page = 10
     search_query = request.args.get('search', '')
     dept_filter = request.args.get('dept', '')
+    sort_order = request.args.get('sort', '')
 
     query = User.query.filter_by(role='Student')
     if search_query:
         query = query.filter(or_(User.name.ilike(f"%{search_query}%"), User.roll_number.ilike(f"%{search_query}%")))
     if dept_filter:
         query = query.filter(User.department == dept_filter)
+    if sort_order == 'asc':
+        query = query.order_by(User.year_of_graduation.asc())
+    elif sort_order == 'desc':
+        query = query.order_by(User.year_of_graduation.desc())
 
     students = query.paginate(page=page, per_page=per_page)
 
-    return render_template('EditStudents.html', students=students, search_query=search_query, dept_filter=dept_filter)
+    return render_template(
+        'EditStudents.html',
+        students=students.items,  # Pass the actual list of students
+        pagination=students,  # Pass the pagination object for pagination handling
+        search_query=search_query,
+        dept_filter=dept_filter,
+        sort_order=sort_order
+    )
 
 @lib.route('/adddonor', methods=['GET', 'POST'])
 @login_required
