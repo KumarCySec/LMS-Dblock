@@ -11,9 +11,17 @@ from .forms import CSRFProtectForm
 logger = logging.getLogger(__name__)
 lib = Blueprint('lib', __name__)
 
+def role_required_volunteer_librarian():
+    """Restrict access to volunteers and librarian only."""
+    if current_user.role.lower() not in ["volunteer", "librarian"]:
+        flash("Unauthorized access.", "danger")
+        logger.warning(f"[SECURITY] Unauthorized access attempt by {current_user.email}")
+        return redirect(url_for("views.home"))
+    
 @lib.route('/addbooks', methods=['GET', 'POST'])
 @login_required
 def AddBooks():
+    role_required_volunteer_librarian()
     donors = Donor.query.all()
     if request.method == 'POST':
         title = request.form['title']
@@ -72,6 +80,7 @@ def AddBooks():
 @lib.route('/viewbooks', methods=['GET', 'POST'])
 @login_required
 def ViewBooks():
+    role_required_volunteer_librarian()
     unique_languages = db.session.query(Book.language).distinct().all()
     unique_languages = [lang[0] for lang in unique_languages]  # Extracting from tuples
     search_query = request.args.get('search', '')
@@ -91,6 +100,7 @@ def ViewBooks():
 @lib.route('/editbooks', methods=['GET', 'POST'])
 @login_required
 def EditBooks():
+    role_required_volunteer_librarian()
     if request.method == 'POST':
         action = request.form.get('action')
         book_id = int(request.form.get('book_id'))
@@ -139,6 +149,7 @@ def EditBooks():
 @lib.route('/viewstudentsdetails', methods=['GET', 'POST'])
 @login_required
 def ViewStudentsDetails():
+    role_required_volunteer_librarian()
     search_query = request.args.get('search', '')
     students = User.query.filter(User.role == 'Student').filter(
         or_(User.name.ilike(f'%{search_query}%'), User.roll_number.ilike(f'%{search_query}%'))
@@ -149,6 +160,7 @@ def ViewStudentsDetails():
 @lib.route('/editstudentsdetails', methods=['GET', 'POST'])
 @login_required
 def EditStudentsDetails():
+    role_required_volunteer_librarian()
     try:
         if request.method == 'POST':
             action = request.form.get('action')
@@ -218,6 +230,7 @@ def EditStudentsDetails():
 @lib.route('/adddonor', methods=['GET', 'POST'])
 @login_required
 def AddDonor():
+    role_required_volunteer_librarian()
     if request.method == 'POST':
         name = request.form.get('name')
         department = request.form.get('dept')
@@ -253,6 +266,7 @@ def AddDonor():
 @lib.route('/viewdonors')
 @login_required
 def ViewDonors():
+    role_required_volunteer_librarian()
     search_query = request.args.get('search', '')
     dept_filter = request.args.get('dept', '')
     sort_order = request.args.get('sort', '')
@@ -274,6 +288,7 @@ def ViewDonors():
 @lib.route('/editdonors', methods=['GET', 'POST'])
 @login_required
 def EditDonors():
+    role_required_volunteer_librarian()
     if request.method == 'POST':
         donor_id = request.form.get('donor_id')
         donor = Donor.query.get(donor_id)
@@ -323,6 +338,7 @@ def EditDonors():
 @lib.route('/managestudents', methods=['GET', 'POST'])
 @login_required
 def manage_students():
+    role_required_volunteer_librarian()
     verified_students = User.query.filter(User.is_verified == True, User.role.in_(['Student', 'Volunteer'])).all()
     unverified_students = User.query.filter(User.is_verified == False, User.role.in_(['Student', 'Volunteer']), User.rejected_at == None).all()
     rejected_students = User.query.filter(User.rejected_at != None).all()  # Fetching rejected students
@@ -378,6 +394,7 @@ def manage_students():
 
 @lib.route('/manage_checkouts', methods=['POST','GET'])
 def manage_checkouts():
+    role_required_volunteer_librarian()
     borrowed_books = BorrowedBook.query.filter(BorrowedBook.is_verified == False,BorrowedBook.rejected_at == None).all()
     approved_books = BorrowedBook.query.filter(BorrowedBook.is_verified == True).all()
     rejected_checkouts = BorrowedBook.query.filter(BorrowedBook.rejected_at != None).all()
@@ -417,6 +434,8 @@ def manage_checkouts():
 @lib.route('/direct_checkout', methods=['GET', 'POST'])
 @login_required
 def direct_checkout():
+    role_required_volunteer_librarian()
+    
     unique_languages = db.session.query(Book.language).distinct().all()
     unique_languages = [lang[0] for lang in unique_languages]
     verified_students = User.query.filter(User.is_verified == True, User.role.in_(['Student', 'Volunteer'])).all()
@@ -482,6 +501,7 @@ def direct_checkout():
 @lib.route("/reset-password", methods=["GET", "POST"])
 @login_required
 def password_reset_page():
+    role_required_volunteer_librarian()
     try:
         # ✅ Restrict access to volunteers only
         if current_user.role.lower() != "volunteer":
@@ -552,10 +572,7 @@ def password_reset_page():
 @lib.route('/reset-password', methods=['POST'])
 @login_required
 def reset_student_password():
-    if current_user.role != "Volunteer":
-        flash("Unauthorized access.", "danger")
-        logger.warning(f"[SECURITY] Unauthorized password reset attempt by {current_user.email}")
-        return redirect(url_for('views.home'))
+    role_required_volunteer_librarian()
 
     try:
         student_id = request.form.get('student_id')
