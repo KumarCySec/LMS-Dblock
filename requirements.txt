@@ -1,5 +1,10 @@
-
-flask
-flask_sqlalchemy
-flask_login
-flask_wtf
+Flask==3.1.0
+Flask_Login==0.6.3
+Flask_Migrate==4.0.5
+flask_sqlalchemy==3.1.1
+flask_wtf==1.2.2
+numpy==2.2.5
+openpyxl==3.1.5
+pandas==2.2.3
+SQLAlchemy==2.0.31
+Werkzeug==3.1.3

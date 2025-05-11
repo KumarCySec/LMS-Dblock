@@ -149,12 +149,15 @@ def ViewStudentsDetails():
 @lib.route('/editstudentsdetails', methods=['GET', 'POST'])
 @login_required
 def EditStudentsDetails():
-    if request.method == 'POST':
-        action = request.form.get('action')
-
-        try:
-            student_id = int(request.form.get('student_id'))
+    try:
+        if request.method == 'POST':
+            action = request.form.get('action')
+            student_id = request.form.get('student_id')
             student = User.query.get(student_id)
+
+            if not student:
+                flash("Student not found.", "error")
+                return redirect(url_for('lib.EditStudentsDetails'))
 
             if action == 'edit':
                 student.name = request.form.get('name')
@@ -164,45 +167,53 @@ def EditStudentsDetails():
                 student.department = request.form.get('department')
                 student.year_of_graduation = request.form.get('year_of_graduation')
 
-                dob_str = request.form.get('dob')
-                student.dob = datetime.strptime(dob_str, '%Y-%m-%d').date() if dob_str else None
-
                 db.session.commit()
-                flash('Student details updated successfully.', 'success')
+                flash('✅ Student details updated successfully.', 'success')
+                print(f"🟢 [DEBUG] Updated Student ID: {student_id} - {student.name}")
+
             elif action == 'delete':
                 db.session.delete(student)
                 db.session.commit()
-                flash('Student deleted successfully.', 'success')
-        except Exception as e:
-            flash(f'Error updating/deleting student: {str(e)}', 'error')
-            db.session.rollback()
+                flash('❌ Student deleted successfully.', 'success')
+                print(f"🟢 [DEBUG] Deleted Student ID: {student_id} - {student.name}")
 
-    page = request.args.get('page', 1, type=int)
-    per_page = 10
-    search_query = request.args.get('search', '')
-    dept_filter = request.args.get('dept', '')
-    sort_order = request.args.get('sort', '')
+        # Handling GET request (Search, Filter, Pagination)
+        page = request.args.get('page', 1, type=int)
+        per_page = 10
+        search_query = request.args.get('search', '').strip()
+        dept_filter = request.args.get('dept', '')
 
-    query = User.query.filter_by(role='Student')
-    if search_query:
-        query = query.filter(or_(User.name.ilike(f"%{search_query}%"), User.roll_number.ilike(f"%{search_query}%")))
-    if dept_filter:
-        query = query.filter(User.department == dept_filter)
-    if sort_order == 'asc':
-        query = query.order_by(User.year_of_graduation.asc())
-    elif sort_order == 'desc':
-        query = query.order_by(User.year_of_graduation.desc())
+        query = User.query.filter_by(role='Student')
 
-    students = query.paginate(page=page, per_page=per_page)
+        if search_query:
+            query = query.filter(
+                User.name.ilike(f"%{search_query}%") | 
+                User.roll_number.ilike(f"%{search_query}%")
+            )
+            print(f"🟢 [DEBUG] Search Query: {search_query}")
 
-    return render_template(
-        'EditStudents.html',
-        students=students.items,  # Pass the actual list of students
-        pagination=students,  # Pass the pagination object for pagination handling
-        search_query=search_query,
-        dept_filter=dept_filter,
-        sort_order=sort_order
-    )
+        if dept_filter:
+            query = query.filter(User.department == dept_filter)
+            print(f"🟢 [DEBUG] Department Filter: {dept_filter}")
+
+        query = query.order_by(User.name.asc())
+        students = query.paginate(page=page, per_page=per_page)
+        print(f"🟢 [DEBUG] Total Students Found: {students.total}")
+
+        return render_template(
+            'EditStudents.html',
+            students=students.items,
+            pagination=students,  # The correct pagination object
+            search_query=search_query,
+            dept_filter=dept_filter
+        )
+
+    except Exception as e:
+        flash(f"🚨 Error: {str(e)}", "error")
+        print(f"🔴 [ERROR] {str(e)}")
+        return redirect(url_for('lib.EditStudentsDetails'))
+
+
 
 @lib.route('/adddonor', methods=['GET', 'POST'])
 @login_required

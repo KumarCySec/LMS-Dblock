@@ -1,75 +1,223 @@
 {% extends "StudentHome.html" %}
-
 {% block stucontent %}
-<div class="container">
-    <h1 class="my-4">Checkout Books</h1>
+<style>
+  /* Fade-in cards */
+  .book-card {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .5s ease, transform .5s ease;
+  }
+  .book-card.loaded {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  /* Tooltip ellipsis */
+  .title-ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  /* Loader overlay */
+  #pageLoader {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255,255,255,.8); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1050; opacity: 0; visibility: hidden;
+    transition: opacity .3s ease;
+  }
+  #pageLoader.show {
+    opacity: 1; visibility: visible;
+  }
+</style>
 
-    <!-- Search form -->
-    <form method="GET" action="{{ url_for('stu.CheckoutBooks') }}">
-        <div class="input-group mb-3">
-            <input type="text" class="form-control" placeholder="Search by title, ISBN, or author" name="search_query" value="{{ search_query }}">
-            <button class="btn btn-outline-primary" type="submit">Search</button>
-        </div>
-    </form>
-
-    <!-- Checkout button (move to top) -->
-    <form id="checkoutForm" method="POST" action="{{ url_for('stu.CheckoutBooks') }}">
-        <!-- Hidden input to handle form submission -->
-        <input type="hidden" id="selectedBooks" name="selected_books">
-        <button type="button" class="btn btn-primary mb-4" onclick="prepareCheckout()">Checkout Selected Books</button>
-    </form> 
-
-    <!-- Book cards -->
-    <form id="bookListForm" method="POST" action="{{ url_for('stu.CheckoutBooks') }}">
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            {% for book in books %}
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ book.title }}</h5>
-                        <p class="card-text">Author: {{ book.author }}</p>
-                        <p class="card-text">ISBN: {{ book.isbn }}</p>
-                        <p class="card-text">Quantity: {{ book.quantity }}</p>
-
-                        <!-- Checkbox with associated label -->
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="book{{ book.id }}" name="book_ids" value="{{ book.id }}">
-                            <label class="form-check-label" for="book{{ book.id }}">Checkout "{{ book.title }}"</label>
-                        </div>
-
-                        <!-- Verification status -->
-                        {% if book.borrowed_books %}
-                            {% for borrowed_book in book.borrowed_books %}
-                                {% if borrowed_book.is_verified %}
-                                    <span class="badge bg-success">Successfully Checked Out</span>
-                                {% else %}
-                                    <span class="badge bg-warning text-dark">Verification Pending</span>
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <!-- Submit button -->
-        <button type="submit" style="display: none;"></button>
-    </form>
+<div id="pageLoader">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
 </div>
 
-<script>
-    // Function to prepare checkout and submit form
-    function prepareCheckout() {
-        let selectedBooks = document.querySelectorAll('input[name="book_ids"]:checked');
-        if (selectedBooks.length === 0) {
-            alert('Please select at least one book to checkout.');
-        } else {
-            let selectedBooksArray = Array.from(selectedBooks).map(input => input.value);
-            document.getElementById('selectedBooks').value = JSON.stringify(selectedBooksArray);
-            document.getElementById('bookListForm').submit();
-        }
-    }
-</script>
+<div class="container my-4" id="unifiedBooksContent">
+  <h2 class="mb-4 text-center">📚 Browse & Checkout Books</h2>
 
+  <!-- Search + Filters + Sort -->
+  <form method="GET" class="row row-cols-lg-auto g-2 align-items-center mb-4">
+    <div class="col-12">
+      <input type="text" name="search" class="form-control shadow-sm"
+             placeholder="🔍 Search by title, author or ISBN" value="{{ search_query }}">
+    </div>
+    <div class="col-6 col-md-3">
+      <select name="language" class="form-select shadow-sm">
+        <option value="">All Languages</option>
+        {% for lang in unique_languages %}
+          <option value="{{ lang }}" {% if lang==lang_filter %}selected{% endif %}>{{ lang }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-3">
+      <select name="sort" class="form-select shadow-sm">
+        {% for key,label in sort_options %}
+          <option value="{{ key }}" {% if key==sort_option %}selected{% endif %}>Sort: {{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-auto">
+      <button type="submit" class="btn btn-primary shadow-sm">Apply</button>
+      <a href="{{ url_for('stu.CheckoutBooks') }}" class="btn btn-outline-secondary shadow-sm">Reset</a>
+    </div>
+  </form>
+
+  <!-- Checkout Button -->
+  <div class="d-flex justify-content-end mb-3">
+    <button class="btn btn-success btn-lg shadow" onclick="prepareCheckout()">
+      <i class="bi bi-cart-check me-1"></i> Checkout Selected
+    </button>
+  </div>
+
+  <!-- Book Grid -->
+  <form id="bookListForm" method="POST" action="{{ url_for('stu.CheckoutBooks') }}">
+    <input type="hidden" name="selected_books" id="selectedBooks">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+      {% for book in books.items %}
+      <div class="col">
+        <div class="card h-100 book-card shadow-sm position-relative">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title title-ellipsis" title="{{ book.title }}">
+              {{ book.title }}
+            </h5>
+            <p class="card-text mb-1 text-muted">by {{ book.author }}</p>
+            <span class="badge bg-secondary mb-2">{{ book.language }}</span>
+            <p class="card-text mb-2"><strong>Qty:</strong> {{ book.quantity }}</p>
+
+            <div class="mt-auto d-flex justify-content-between align-items-center">
+              <button type="button"
+                      class="btn btn-info btn-sm shadow-sm"
+                      data-bs-toggle="modal"
+                      data-bs-target="#donorModal"
+                      data-donor='{{ book.donor_data | tojson | safe }}'>
+                <i class="bi bi-person-badge-fill me-1"></i> Donor Details
+              </button>
+
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox"
+                       name="book_ids" value="{{ book.id }}"
+                       id="chk{{ book.id }}"
+                       {% if book.quantity==0 %}disabled{% endif %}>
+                <label class="form-check-label small" for="chk{{ book.id }}">
+                  {% if book.quantity==0 %}
+                    <span class="text-danger">Unavailable</span>
+                  {% else %}
+                    Select
+                  {% endif %}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </form>
+
+  <!-- Pagination -->
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if books.has_prev %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('stu.CheckoutBooks', page=books.prev_num, search=search_query, language=lang_filter, sort=sort_option) }}"
+           aria-label="Previous" onclick="handleNav()">&laquo;</a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+      {% endif %}
+
+      {% for p in books.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <li class="page-item {% if p==books.page %}active{% endif %}">
+          <a class="page-link" href="{{ url_for('stu.CheckoutBooks', page=p, search=search_query, language=lang_filter, sort=sort_option) }}"
+             onclick="handleNav()">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if books.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('stu.CheckoutBooks', page=books.next_num, search=search_query, language=lang_filter, sort=sort_option) }}"
+           aria-label="Next" onclick="handleNav()">&raquo;</a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+
+<!-- Donor Modal -->
+<div class="modal fade" id="donorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-info shadow">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title"><i class="bi bi-person-lines-fill me-1"></i> Donor Info</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Name:</strong> <span id="donorName"></span></p>
+        <p><strong>Dept:</strong> <span id="donorDept"></span></p>
+        <p><strong>Year:</strong> <span id="donorYOG"></span></p>
+        <hr>
+        <h6>Other Donations:</h6>
+        <ul id="donorBooksList" class="list-unstyled small mb-0"></ul>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-info" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block stuscripts %}
+<script>
+  // Fade-in cards after DOM load
+  window.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.book-card').forEach(c => c.classList.add('loaded'));
+  });
+
+  // Show loader on navigation & submission
+  function handleNav() {
+    document.getElementById('pageLoader').classList.add('show');
+  }
+  function prepareCheckout() {
+    const sel = Array.from(document.querySelectorAll('input[name="book_ids"]:checked'))
+                      .map(i => i.value);
+    if (!sel.length) return alert('Select at least one book.');
+    console.log('🟢 [DEBUG] Checking out IDs:', sel);
+    document.getElementById('selectedBooks').value = JSON.stringify(sel);
+    document.getElementById('pageLoader').classList.add('show');
+    document.getElementById('bookListForm').submit();
+  }
+
+  // Smooth scroll to top
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Populate donor modal
+  const donorModal = document.getElementById('donorModal');
+  donorModal.addEventListener('show.bs.modal', e => {
+    const data = JSON.parse(e.relatedTarget.getAttribute('data-donor'));
+    donorModal.querySelector('#donorName').textContent = data.name;
+    donorModal.querySelector('#donorDept').textContent = data.dept;
+    donorModal.querySelector('#donorYOG').textContent = data.yog;
+    const list = donorModal.querySelector('#donorBooksList');
+    list.innerHTML = '';
+    data.donated.forEach(d => {
+      const li = document.createElement('li');
+      li.textContent = `${d.title} (${d.date})`;
+      list.appendChild(li);
+    });
+  });
+</script>
 {% endblock %}

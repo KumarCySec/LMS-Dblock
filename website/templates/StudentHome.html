@@ -11,22 +11,9 @@
     </a>
 </li>
 <li class="sidebar-item">
-    <a href="#" class="sidebar-link collapsed" data-bs-target="#BOOKS" data-bs-toggle="collapse"
-        aria-expanded="false"><i class="fa-solid fa-file-lines pe-2"></i>
-        Catalog
-    </a>
-    <ul id="BOOKS" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-        <li class="sidebar-item">
-            <a href="{{ url_for('stu.ViewBooks') }}" class="sidebar-link">View Books</a>
-        </li>
-        <li class="sidebar-item">
             <a href="{{ url_for('stu.CheckoutBooks') }}" class="sidebar-link">Checkout Books</a>
-        </li>
-        <li class="sidebar-item">
-            <a href="#" class="sidebar-link">Return Books</a>
-        </li>
-    </ul>
 </li>
+
 {% endblock %}
 
 {% block content %} {% block stucontent %} {% endblock %} {% endblock %}

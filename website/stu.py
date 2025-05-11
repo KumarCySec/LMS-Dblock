@@ -1,10 +1,10 @@
-from flask import Blueprint,render_template,request,session, url_for, redirect,flash, current_app
+from flask import Blueprint,render_template,request,session, url_for, redirect,flash, current_app, jsonify, json
 from flask_login import login_required,current_user
 from .models import Book,BorrowedBook,User
 from datetime import datetime,timedelta,timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
-from sqlalchemy import or_
+from sqlalchemy import or_, func, desc, asc
 import os
 import logging
 from werkzeug.utils import secure_filename
@@ -14,82 +14,115 @@ logger = logging.getLogger(__name__)
 
 stu = Blueprint('stu', __name__)
 
-@stu.route('/viewbooks', methods=['GET','POST'])
-@login_required
-def ViewBooks():
-    search_query = request.args.get('search', '')
-    lang_filter = request.args.get('language', '')
-    
-    page = request.args.get('page', 1, type=int)  # Default to page 1 if not specified
-
-    # Base query to fetch books
-    query = Book.query
-
-    # Apply search filter
-    if search_query:
-        query = query.filter(or_(Book.title.ilike(f'%{search_query}%'), Book.author.ilike(f'%{search_query}%')))
-
-    # Fetch distinct languages for filter dropdown
-    languages = db.session.query(Book.language.distinct().label("language")).all()
-    unique_languages = [lang.language for lang in languages]
-
-    # Pagination
-    books = query.paginate(page=page, per_page=9)  # Adjust per_page as needed
-
-    return render_template('SViewBooks.html', books=books, search_query=search_query, lang_filter=lang_filter, unique_languages=unique_languages)
-
 @stu.route('/checkoutbooks', methods=['GET', 'POST'])
 @login_required
 def CheckoutBooks():
-    search_query = request.args.get('search_query', '')  # Get search query from URL parameter
+    search_query = request.args.get('search', '')
+    lang_filter  = request.args.get('language', '')
+    sort_option  = request.args.get('sort', 'newest')
+    page         = request.args.get('page', 1, type=int)
 
+    # --- POST: checkout ---
     if request.method == 'POST':
-        # Handle form submission for checkout
-        book_ids = request.form.getlist('book_ids')  # Get list of selected book IDs from form
+        raw = request.form.get('selected_books', '[]')
+        try:
+            ids = list(map(int, json.loads(raw)))
+        except Exception as e:
+            print("🔴 [DEBUG] Failed to parse selected_books:", raw, "Error:", e)
+            flash('Invalid selection payload.', 'danger')
+            return redirect(url_for('stu.CheckoutBooks'))
 
-        if not book_ids:
-            flash('Please select at least one book to checkout.', 'error')
-            print('Please select at least one book to checkout.', 'error')
+        print("🟢 [DEBUG] Selected IDs to checkout:", ids)
+        if not ids:
+            flash('Select at least one book.', 'warning')
             return redirect(url_for('stu.CheckoutBooks'))
 
         try:
-            for book_id in book_ids:
-                book = Book.query.get(book_id)
+            for bid in ids:
+                book = Book.query.get(bid)
+                print(f"   → [DEBUG] Processing book id={bid}, qty={getattr(book,'quantity',None)}")
                 if book and book.quantity > 0:
-                    # Decrease quantity of available books
                     book.quantity -= 1
-
-                    due_date = datetime.now(timezone.utc) + timedelta(days=14)
-                    
-                    # Record the borrowing transaction in BorrowedBook table
-                    borrowed_book = BorrowedBook(
+                    due = datetime.now(timezone.utc) + timedelta(days=14)
+                    bb = BorrowedBook(
                         student_id=current_user.id,
-                        book_id=book_id,
+                        book_id=bid,
                         borrowed_date=datetime.now(timezone.utc),
-                        due_date=due_date,
-                        is_verified=False  # Initial status is not verified
+                        due_date=due,
+                        is_verified=False
                     )
-                    db.session.add(borrowed_book)
-
+                    db.session.add(bb)
+                else:
+                    print(f"   ⚠️ [DEBUG] Cannot checkout book id={bid}: not found or zero quantity")
             db.session.commit()
-            flash('Books checked out successfully. Please wait for verification.', 'success')
+            flash('Checked out! Await verification.', 'success')
+            print("🟢 [DEBUG] Commit successful.")
         except Exception as e:
             db.session.rollback()
-            flash(f'Error checking out books: {str(e)}', 'error')
-
+            print("🔴 [DEBUG] Checkout error:", e)
+            flash(f'Error during checkout: {e}', 'danger')
         return redirect(url_for('stu.CheckoutBooks'))
 
-    # Fetch all available books for checkout (with optional search filtering)
+    # --- GET: build query ---
+    q = Book.query
     if search_query:
-        books = Book.query.filter(
-            (Book.title.ilike(f'%{search_query}%')) |
-            (Book.author.ilike(f'%{search_query}%')) |
-            (Book.isbn.ilike(f'%{search_query}%'))
-        ).filter(Book.quantity > 0).all()
-    else:
-        books = Book.query.filter(Book.quantity > 0).all()
+        term = f"%{search_query}%"
+        q = q.filter(or_(Book.title.ilike(term),
+                         Book.author.ilike(term),
+                         Book.isbn.ilike(term)))
+    if lang_filter:
+        q = q.filter(Book.language == lang_filter)
 
-    return render_template('CheckoutBooks.html', books=books, search_query=search_query)
+    # Sorting
+    if sort_option == 'newest':
+        q = q.order_by(desc(Book.date_of_donation))
+    elif sort_option == 'oldest':
+        q = q.order_by(Book.date_of_donation)
+    elif sort_option == 'a_z':
+        q = q.order_by(Book.title.asc())
+    elif sort_option == 'z_a':
+        q = q.order_by(Book.title.desc())
+    elif sort_option == 'popular':
+        q = q.outerjoin(BorrowedBook).group_by(Book.id).order_by(func.count(BorrowedBook.id).desc())
+    else:
+        q = q.order_by(desc(Book.added_at))
+
+    books = q.paginate(page=page, per_page=8, error_out=False)
+
+    # Attach donor_data
+    for book in books.items:
+        if book.donor:
+            donated = [
+                {"title": b.title, "date": b.date_of_donation.strftime("%d %b %Y")}
+                for b in book.donor.books
+            ]
+            book.donor_data = {
+                "name": book.donor.name,
+                "dept": book.donor.department,
+                "yog": book.donor.year_of_graduation,
+                "donated": donated
+            }
+        else:
+            book.donor_data = {"name": "N/A", "dept": "", "yog": "", "donated": []}
+
+    unique_languages = [l[0] for l in db.session.query(Book.language.distinct()).all()]
+    sort_options = [
+        ('newest',  'New Arrivals'),
+        ('popular', 'Popular'),
+        ('oldest',  'Oldest'),
+        ('a_z',     'A → Z'),
+        ('z_a',     'Z → A'),
+    ]
+
+    return render_template(
+        'CheckoutBooks.html',
+        books=books,
+        search_query=search_query,
+        lang_filter=lang_filter,
+        sort_option=sort_option,
+        unique_languages=unique_languages,
+        sort_options=sort_options
+    )
 
 @stu.route('/mybooks', methods=['GET', 'POST'])
 @login_required
