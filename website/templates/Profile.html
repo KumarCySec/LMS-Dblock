@@ -36,8 +36,16 @@
                                 <input type="text" class="form-control glass-input" id="name" name="name" value="{{ user.name }}" required>
                             </div>
                             <div class="mb-3">
+                                <label for="name" class="form-label">Roll Number</label>
+                                <input type="text" class="form-control glass-input" id="roll_number" name="roll_number" value="{{ user.roll_number }}" required>
+                            </div>
+                            <div class="mb-3">
                                 <label for="phone_number" class="form-label">Phone Number</label>
                                 <input type="text" class="form-control glass-input" id="phone_number" name="phone" value="{{ user.phone_number }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="text" class="form-control glass-input" id="email" name="email" value="{{ user.email}}">
                             </div>
                             <div class="mb-3">
                                 <label for="department" class="form-label">Department</label>
@@ -47,10 +55,10 @@
                                 <label for="year_of_graduation" class="form-label">Year of Graduation</label>
                                 <input type="number" class="form-control glass-input" id="year_of_graduation" name="year_of_graduation" value="{{ user.year_of_graduation }}">
                             </div>
-                            <div class="mb-3">
+                            <!-- <div class="mb-3">
                                 <label for="profile_picture_url" class="form-label">Profile Picture URL</label>
                                 <input type="text" class="form-control glass-input" id="profile_picture_url" name="profile_picture_url" value="{{ user.profile_picture_url }}">
-                            </div>
+                            </div> -->
                             <button type="submit" name="update_details" class="btn btn-primary glass-btn">Save Changes</button>
                         </form>
                     </div>
