@@ -127,7 +127,7 @@ def handle_signup(form):
                         year_of_graduation=year_of_graduation, role=role)
         db.session.add(new_user)
         db.session.commit()
-        flash('Account created successfully.', category='success')
+        flash('Account created successfully. You can login once you get verified', category='success')
         print('Account created successfully.')
         return redirect(url_for('auth.auth_page'))
     
