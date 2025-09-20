@@ -123,7 +123,7 @@ def handle_signup(form):
         print('Invalid role selection.')
 
     else:
-        new_user = User(email=email, name=name, password=generate_password_hash(password, method='pbkdf2:sha256'),mobilenumber=mobile_number,
+        new_user = User(email=email, name=name, password=generate_password_hash(password, method='pbkdf2:sha256'),phone_number=mobile_number,
                         roll_number=roll_number, department=department,
                         year_of_graduation=year_of_graduation, role=role)
         db.session.add(new_user)
